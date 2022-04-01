@@ -1,0 +1,22 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+packages:
+  - curl
+  - openssh-server
+  - ca-certificates
+  - tzdata
+  - perl
+  - postfix
+
+runcmd:
+  - log_start gitlab
+  - curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ce/script.deb.sh | bash
+  - EXTERNAL_URL="http://{{ds.meta_data.imds.compute.name}}-$DEV_ID.{{ds.meta_data.imds.compute.location}}.cloudapp.azure.com" apt-get install gitlab-ce
+  - log_done gitlab
+  

@@ -1,0 +1,18 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+runcmd:
+  - log_start gcm
+  - wget https://github.com/GitCredentialManager/git-credential-manager/releases/download/v2.0.632/gcmcore-linux_amd64.2.0.632.34631.deb
+  - dpkg -i gcmcore-linux_amd64.2.0.632.34631.deb
+  - rm gcmcore-linux_amd64.2.0.632.34631.deb
+  - su {{ds.meta_data.imds.compute.osProfile.adminUsername}} -c 'git-credential-manager-core configure'
+  - su {{ds.meta_data.imds.compute.osProfile.adminUsername}} -c 'git config --global credential.azreposCredentialType oauth'
+  - su {{ds.meta_data.imds.compute.osProfile.adminUsername}} -c 'git config --global credential.credentialStore cache'
+  - log_done gcm
+  

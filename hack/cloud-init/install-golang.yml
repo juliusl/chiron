@@ -1,0 +1,17 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+runcmd:
+  - log_start golang
+  - wget https://go.dev/dl/go1.18.linux-amd64.tar.gz
+  - tar -C /usr/local -xzf go1.18.linux-amd64.tar.gz
+  - rm go1.18.linux-amd64.tar.gz
+  - echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/bash.bashrc
+  - echo 'export PATH=$PATH:/home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}/go/bin' >> /home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}/.profile
+  - log_done golang
+  

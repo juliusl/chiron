@@ -1,0 +1,22 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+runcmd:
+  - log_start gitserver
+  - adduser --disabled-password git
+  - mkdir -p /home/git/.ssh  
+  - chown -R git.git /home/git/.ssh/
+  - cp /home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}/.ssh/authorized_keys /home/git/.ssh/authorized_keys
+  - chown git.git /home/git/.ssh/authorized_keys
+  - chsh git -s $(which git-shell)
+  - git config --global init.defaultBranch main
+  - mkdir -p /home/git/test.git
+  - cd /home/git/test.git
+  - git init --bare
+  - chown -R git.git /home/git/test.git/
+  - log_done gitserver

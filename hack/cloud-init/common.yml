@@ -1,0 +1,24 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+apt:
+  sources:
+    ignored1:
+      source: "ppa:git-core/ppa"
+package_update: true
+package_upgrade: true
+packages:
+  - jq
+  - git
+  - apt-transport-https
+runcmd:
+  - log() { TIMESTAMP=`date +'%Y-%m-%d %T'`; echo "block\t$TIMESTAMP\t$1\t\t\t$2"; }
+  - log_start() { log Starting $1; }
+  - log_done() { log 'Done    ' $1; }
+  - "export DEV_ID=$(echo {{ds.meta_data.imds.compute.tags}} | awk -F: '/dev_id/ {print $2}')"
+  - log Configuring {{ds.meta_data.imds.compute.name}}-$DEV_ID.{{ds.meta_data.imds.compute.location}}.cloudapp.azure.com

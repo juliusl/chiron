@@ -1,0 +1,12 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+runcmd:
+  - log_start rustlang
+  - su {{ds.meta_data.imds.compute.osProfile.adminUsername}} -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile default"
+  - log_done rustlang
