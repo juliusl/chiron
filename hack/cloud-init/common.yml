@@ -20,5 +20,9 @@ runcmd:
   - log() { TIMESTAMP=`date +'%Y-%m-%d %T'`; echo "block\t$TIMESTAMP\t$1\t\t\t$2"; }
   - log_start() { log Starting $1; }
   - log_done() { log 'Done    ' $1; }
-  - "export DEV_ID=$(echo {{ds.meta_data.imds.compute.tags}} | awk -F: '/dev_id/ {print $2}')"
+  - as_user() { su {{ds.meta_data.imds.compute.osProfile.adminUsername}} -c "$1"; }
+  - AWK_TAG_BEGIN='BEGIN { RS = ";"}'
+  - AWK_TAG_PROG='{print $2}'
+  - 'get_tag() { echo "{{ds.meta_data.imds.compute.tags}};" | awk -F: "$AWK_TAG_BEGIN /$1/ $AWK_TAG_PROG"; }'
+  - export DEV_ID=$(get_tag dev_id)
   - log Configuring {{ds.meta_data.imds.compute.name}}-$DEV_ID.{{ds.meta_data.imds.compute.location}}.cloudapp.azure.com

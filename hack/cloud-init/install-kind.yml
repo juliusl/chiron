@@ -9,6 +9,6 @@ merge_how:
 runcmd:
   - log_start kind
   - cd /home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}
-  - su {{ds.meta_data.imds.compute.osProfile.adminUsername}} -c "/usr/local/go/bin/go install sigs.k8s.io/kind@v0.12.0"
+  - as_user '/usr/local/go/bin/go install sigs.k8s.io/kind@v0.12.0'
   - log_done kind
   
