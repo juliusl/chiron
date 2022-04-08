@@ -95,7 +95,7 @@ impl CloudInit {
             )));
             multipart_headers.set_raw("MIME-Version", vec![b"1.0".to_vec()]);
 
-            if let Err(err) = write!(&mut f, "{}", multipart_headers.to_string()) {
+            if let Err(err) = writeln!(&mut f, "{}", multipart_headers.to_string()) {
                 panic!("{}", err);
             }
 
