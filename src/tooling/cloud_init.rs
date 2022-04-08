@@ -76,12 +76,12 @@ impl CloudInit {
                 })
                 .collect();
 
+            // This follows the format that cpython uses to be consistent with cloud-init
             let boundary = generate_boundary();
-
             let mut hasher = DefaultHasher::new();
             hasher.write(&boundary);
-
             let boundary = format!("{}{}{}", "=".repeat(15), hasher.finish(), "==");
+
             let mut multipart_headers = Headers::new();
             let boundary_param = (Attr::Boundary, Value::Ext(format!(r#""{}""#, boundary)));
             multipart_headers.set(ContentType(Mime(
