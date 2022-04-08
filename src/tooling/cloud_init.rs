@@ -148,7 +148,6 @@ impl CloudInit {
                                 loop {
                                     let line: String = encoded
                                         .chars()
-                                        .into_iter()
                                         .skip(lines * DEFAULT_MAX_LINE_LENGTH)
                                         .take(DEFAULT_MAX_LINE_LENGTH)
                                         .collect();
