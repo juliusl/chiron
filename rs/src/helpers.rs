@@ -1,6 +1,6 @@
 use walkdir::WalkDir;
 
-fn yaml_files(dir: String) -> Vec<String> {
+pub fn yaml_files(dir: String) -> Vec<String> {
     // Walk the root directory and find where all the CURRENT files are
     let mut paths = vec![];
     for entry in WalkDir::new(&dir)

@@ -3,14 +3,19 @@ use hyper::{
     mime::{Attr, Mime, SubLevel, TopLevel, Value},
 };
 use mime_multipart::{self, generate_boundary, write_multipart, Node, Part};
-use std::{collections::hash_map::DefaultHasher, hash::Hasher, io::Write};
+use phf::phf_map;
+use std::{
+    collections::hash_map::DefaultHasher,
+    hash::Hasher,
+    io::Write,
+};
 
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
-use crate::Tooling;
+use super::Tooling;
 
 /// Built in cloud init tool
 pub struct CloudInit {
@@ -19,12 +24,15 @@ pub struct CloudInit {
 }
 
 impl Tooling for CloudInit {
+    /// Creates folders for cloud_init in the user's .local and .cache folders
     fn install<T: AsRef<Path>>(mut self, user_home: T) -> Self {
         self.user_local = Self::with_local_dir(&user_home);
         self.user_cache = Self::with_cache_dir(&user_home);
         self
     }
 
+    /// From config, format all referenced cloud-init files into a MIME message
+    /// Save as user_data in the user's .cache folder (user_cache)
     fn init(self, config: &str) -> Self {
         let settings = Self::parse_tools(Self::yaml(config), vec![Self::symbol()]);
 
@@ -53,26 +61,22 @@ impl Default for CloudInit {
 
 impl CloudInit {
     /// make_mime generates a multi-part mixed mime_body message which will be proccessed by downstream cloud_init
+    /// This tool will be initialized with a list of files that it will compile into a user_data message
+    /// that is intended for cloud_init
+    /// These files must exist in self.toolRoot/cloud_init/
     fn make_mime(&self, data: Vec<String>) {
-        // let user_data = MultiPart::mixed().singlepart(jinja2);
-
-        // let m: Message<MultiPart<&str>> = Message::builder().mime_body(user_data);
-
-        // This tool will be initialized with a list of files that it will compile into a user_data message
-        // that is intended for cloud_init
-        // These files must exist in self.toolRoot/cloud_init/
-
         if let Ok(mut f) = fs::File::create(PathBuf::from(&self.user_cache).join("user_data")) {
             let nodes: Vec<Node> = data
                 .iter()
                 .filter_map(|l| {
+                    // Format of a settings is <filename>:<type> 
+                    // only files located in cloud_init folder are valid
                     let parts: Vec<&str> = l.split(":").collect();
-
                     let file_name = parts[0];
                     let mime_type = parts[1];
                     let file_path = PathBuf::from(&self.user_local).join(file_name);
 
-                    self.attach_mime(&format!("text/{}", mime_type), file_path)
+                    self.attach_mime(mime_type, file_path)
                 })
                 .collect();
 
@@ -105,73 +109,87 @@ impl CloudInit {
         }
     }
 
-    /// attach_mime returns a single valid file-attachment
+    /// attach_mime formats a MIME message based on the content in filepath
+    /// uses base64 encoding with a max lin length for the body
+    /// designed to mimic cloud-init's make-mime format
     fn attach_mime<T: AsRef<Path>>(&self, mime_type_str: &str, filepath: T) -> Option<Node> {
-        const DEFAULT_MAX_LINE_LENGTH: usize = 76;
-
-        let mime_type: Mime = format!("{}; charset=utf8", mime_type_str)
-            .parse()
-            .expect("Invalid MIME-Type formatting");
-
-        // Convert the pathbuf to a &str so it can be encoded and processed
-        match filepath.as_ref().strip_prefix(
-            PathBuf::from(&self.user_local)
-                .parent()
-                .expect("user_local should have a parent folder"),
+        if let (Ok(body), Ok(mime_type), Some(filename)) = (
+            fs::read_to_string(&filepath),
+            CLOUD_INIT_MIME_TYPES[mime_type_str].parse(),
+            // Strip the prefix so that the filename is just <tool>/<file>
+            filepath
+                .as_ref()
+                .strip_prefix(PathBuf::from(&self.user_local).parent().unwrap())
+                .unwrap_or(filepath.as_ref())
+                .to_str(),
         ) {
-            Ok(file_id) => {
-                if let Some(file_id) = file_id.to_str() {
-                    let file_name =
-                        DispositionParam::Ext("filename".to_string(), file_id.to_string());
-
-                    // Reads the content of the file attachment to a string
-                    // If successful generates a MIME part that can be attached to the body of the message
-                    if let Ok(b) = fs::read_to_string(filepath) {
-                        let part = Part {
-                            headers: {
-                                let mut headers = Headers::new();
-                                headers.set(ContentType(mime_type));
-                                headers.set_raw("MIME-Version", vec![b"1.0".to_vec()]);
-                                headers
-                                    .set_raw("Content-Transfer-Encoding", vec![b"base64".to_vec()]);
-                                headers.set(ContentDisposition {
-                                    disposition: DispositionType::Attachment,
-                                    parameters: vec![file_name],
-                                });
-                                headers
-                            },
-                            body: {
-                                let mut output = vec![];
-                                let encoded = base64::encode(b.as_bytes());
-
-                                let mut lines = 0;
-                                loop {
-                                    let line: String = encoded
-                                        .chars()
-                                        .skip(lines * DEFAULT_MAX_LINE_LENGTH)
-                                        .take(DEFAULT_MAX_LINE_LENGTH)
-                                        .collect();
-                                    if line.is_empty() {
-                                        break;
-                                    }
-                                    output.push(line);
-                                    lines += 1;
-                                }
-
-                                let mut body = output.join("\r\n");
-                                body.push_str("\r\n");
-                                body.into_bytes()
-                            },
-                        };
-
-                        return Some(Node::Part(part));
-                    }
-                }
-            }
-            Err(err) => {
-                panic!("{}", err)
-            }
+            Some(Node::Part(Self::format_mime_part(
+                mime_type,
+                filename.to_string(),
+                body,
+            )))
+        } else {
+            None
         }
-        None
+    }
+
+    /// Formats the cloud_init file into a MIME Part
+    fn format_mime_part(mime_type: Mime, filename: String, body: String) -> Part {
+        const DEFAULT_MAX_LINE_LENGTH: usize = 76;
+        // Cloud-init's format doesn't include the charset for the filename disposition
+        let file_name = DispositionParam::Ext("filename".to_string(), filename);
+
+        Part {
+            headers: {
+                let mut headers = Headers::new();
+                headers.set(ContentType(mime_type));
+                headers.set_raw("MIME-Version", vec![b"1.0".to_vec()]);
+                headers.set_raw("Content-Transfer-Encoding", vec![b"base64".to_vec()]);
+                headers.set(ContentDisposition {
+                    disposition: DispositionType::Attachment,
+                    parameters: vec![file_name],
+                });
+                headers
+            },
+            body: {
+                let mut output = vec![];
+                let encoded = base64::encode(body.as_bytes());
+
+                let mut lines = 0;
+                loop {
+                    let line: String = encoded
+                        .chars()
+                        .skip(lines * DEFAULT_MAX_LINE_LENGTH)
+                        .take(DEFAULT_MAX_LINE_LENGTH)
+                        .collect();
+                    if line.is_empty() {
+                        break;
+                    }
+                    output.push(line);
+                    lines += 1;
+                }
+
+                let mut body = output.join("\r\n");
+                body.push_str("\r\n");
+                body.into_bytes()
+            },
+        }
     }
 }
+
+// TODO: The only ones I know are correct are jinja2
+const CLOUD_INIT_MIME_TYPES: phf::Map<&'static str, &'static str> = phf_map! {
+        "cloud-boothook" => r#"text/cloud-boothook; charset="utf8""#,
+        "cloud-config" => r#"text/cloud-config; charset="utf8""#,
+        "cloud-config-archive" => r#"text/cloud-config-archive; charset="utf8""#,
+        "cloud-config-jsonp" => r#"text/cloud-config-jsonp; charset="utf8""#,
+        "jinja2" => r#"text/jinja2; charset="utf8""#,
+        "part-handler" => r#"text/part-handler; charset="utf8""#,
+        "upstart-job" => r#"text/upstart-job; charset="utf8""#,
+        "x-include-once-url" => r#"text/x-include-once-url; charset="utf8""#,
+        "x-include-url" => r#"text/x-include-url; charset="utf8""#,
+        "x-shellscript" => r#"text/x-shellscript; charset="utf8""#,
+        "x-shellscript-per-boot" => r#"text/x-shellscript-per-boot; charset="utf8""#,
+        "x-shellscript-per-instance" => r#"text/x-shellscript-per-instance; charset="utf8""#,
+        "x-shellscript-per-once" => r#"text/x-shellscript-per-once; charset="utf8""#,
+};

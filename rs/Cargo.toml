@@ -8,7 +8,10 @@ edition = "2021"
 [dependencies]
 serde = "1.0"
 serde_yaml = "0.8"
+walkdir = "2"
+phf = { version = "0.10", features = ["macros"] }
+
+# Cloud-Init Make-Mime 
+base64 = "0.13.0"
 mime_multipart = "0.6.0"
 hyper = "0.10.16"
-walkdir = "2"
-base64 = "0.13.0"
