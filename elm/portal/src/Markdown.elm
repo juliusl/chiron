@@ -1,18 +1,18 @@
 module Markdown exposing (viewMarkdown)
 
-import Html
-import Html.Attributes
 import Element exposing (..)
-import Element.Border as Border
 import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Element.Region as Region
+import Html
+import Html.Attributes
+import Markdown.Block as Block exposing (ListItem(..), Task(..))
 import Markdown.Html
 import Markdown.Parser
-import Markdown.Renderer
-import Markdown.Block as Block exposing (ListItem(..), Task(..))
 import Markdown.Renderer exposing (..)
+
 
 viewMarkdown : String -> Result String (List (Element msg))
 viewMarkdown markdown =
@@ -21,13 +21,18 @@ viewMarkdown markdown =
         |> Result.mapError (\error -> error |> List.map Markdown.Parser.deadEndToString |> String.join "\n")
         |> Result.andThen (Markdown.Renderer.render renderer)
 
+
 renderer : Markdown.Renderer.Renderer (Element msg)
-renderer = defaultRenderer
+renderer =
+    defaultRenderer
+
+
 
 -- Custom Renderers (TODO)
+-- Default markdown renderer to elm-ui types
 
--- Default markdown renderer to elm-ui types 
-defaultRenderer : Markdown.Renderer.Renderer (Element msg)            
+
+defaultRenderer : Markdown.Renderer.Renderer (Element msg)
 defaultRenderer =
     { heading = heading
     , paragraph =
@@ -76,8 +81,7 @@ defaultRenderer =
                             Element.row [ Element.spacing 5 ]
                                 [ Element.row
                                     [ Element.alignTop ]
-                                    (( 
-                                        case task of
+                                    ((case task of
                                         IncompleteTask ->
                                             Input.defaultCheckbox False
 
@@ -115,10 +119,11 @@ defaultRenderer =
             Element.paragraph [] children
     , tableCell =
         \_ children ->
-        Element.paragraph [] children
+            Element.paragraph [] children
     , codeBlock = codeBlock
     , codeSpan = code
     }
+
 
 code : String -> Element msg
 code snippet =
@@ -136,11 +141,13 @@ code snippet =
         ]
         (Element.text snippet)
 
+
 codeBlock : { body : String, language : Maybe String } -> Element msg
 codeBlock details =
     parseCodeBlock details
 
-formatCodeBlock: Element msg -> Element msg
+
+formatCodeBlock : Element msg -> Element msg
 formatCodeBlock content =
     Element.el
         [ Background.color (Element.rgba 0 0 0 0.03)
@@ -154,25 +161,31 @@ formatCodeBlock content =
             ]
         , Font.size 14
         ]
-        (content)
+        content
 
-parseCodeBlock: { body: String, language: Maybe String } -> Element msg 
-parseCodeBlock details = 
-    case details.language of 
-        Just lang -> 
-            case lang of 
-                "yaml" -> 
+
+parseCodeBlock : { body : String, language : Maybe String } -> Element msg
+parseCodeBlock details =
+    case details.language of
+        Just lang ->
+            case lang of
+                "yaml" ->
                     formatCodeBlock (Element.text "(TODO) Render a form from this yaml block")
+
                 "markdown" ->
-                    case viewMarkdown details.body of 
-                        Ok rendered -> 
-                            Element.column [Element.spacing 15] rendered
+                    case viewMarkdown details.body of
+                        Ok rendered ->
+                            Element.column [ Element.spacing 15 ] rendered
+
                         Err err ->
                             formatCodeBlock (Element.text err)
+
                 _ ->
                     formatCodeBlock (Element.text details.body)
-        Nothing -> 
+
+        Nothing ->
             formatCodeBlock (Element.text details.body)
+
 
 heading : { level : Block.HeadingLevel, rawText : String, children : List (Element msg) } -> Element msg
 heading { level, rawText, children } =
@@ -181,8 +194,10 @@ heading { level, rawText, children } =
             (case level of
                 Block.H1 ->
                     28
+
                 Block.H2 ->
                     28
+
                 _ ->
                     14
             )
@@ -195,6 +210,7 @@ heading { level, rawText, children } =
             (Html.Attributes.id (rawTextToId rawText))
         ]
         children
+
 
 rawTextToId rawText =
     rawText

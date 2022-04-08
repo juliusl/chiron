@@ -1,13 +1,14 @@
 port module Main exposing (..)
 
 import Browser
-import Html exposing (..)
+import Editor
 import Element exposing (..)
 import Element.Input
-import Markdown
-import Layout
-import Editor
+import Html exposing (..)
 import Instructions
+import Layout
+import Markdown
+
 
 main =
     Browser.document
@@ -17,17 +18,22 @@ main =
         , subscriptions = subscriptions
         }
 
+
+
 -- MODEL
 
+
 type alias Model =
-  { editor: Editor
-  , instructions: String
-  }
+    { editor : Editor
+    , instructions : String
+    }
+
 
 type alias Editor =
-    { text: String, language: String, saved: String }
-    
-type Msg 
+    { text : String, language : String, saved : String }
+
+
+type Msg
     = ResetText
     | Dispatch String
     | Save String
@@ -36,92 +42,127 @@ type Msg
 
 
 init : () -> ( Model, Cmd Msg )
-init _  =
-    ( Model {text=sampleLab, language="markdown", saved=""} sampleLab, Cmd.none )
+init _ =
+    ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, Cmd.none )
+
+
 
 -- UPDATE
 
-update : Msg -> Model -> ( Model, Cmd msg)
+
+update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
     let
-        editor = model.editor
-    in case msg of 
-        ResetText -> 
-            ({model | editor = { editor | text = editor.saved}}, Cmd.none)
-        Save content -> 
-            ({model | editor = { editor | text = content, saved = content}, instructions = content}, Cmd.none)
-        Dispatch cmd -> 
+        editor =
+            model.editor
+    in
+    case msg of
+        ResetText ->
+            ( { model | editor = { editor | text = editor.saved } }, Cmd.none )
+
+        Save content ->
+            ( { model | editor = { editor | text = content, saved = content }, instructions = content }, Cmd.none )
+
+        Dispatch cmd ->
             ( model, dispatchEditorCmd cmd )
+
         Instructions instructions ->
             ( { model | instructions = instructions }, Cmd.none )
-        Done -> 
+
+        Done ->
             ( { model | instructions = model.editor.text }, Cmd.none )
 
--- SUBSCRIPTIONS
 
+
+-- SUBSCRIPTIONS
 -- If Monaco is enabled, this will allow us to pipe commands to the editor
+
+
 port dispatchEditorCmd : String -> Cmd msg
+
+
+
 -- This is called by monaco to pass the current value of it's editor
+
+
 port saveContent : (String -> msg) -> Sub msg
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-  saveContent Save
+    saveContent Save
+
+
 
 -- VIEW
 
-view : Model -> Browser.Document Msg 
-view model = 
-    {
-        title = "Chiron Portal",
-        body = [
-            Layout.view 
-                { title = "Editor"
-                , content = viewCodeEditor { enableMonaco = True, model = model }
-                , detail = Instructions.viewInstructions onNext Done model.instructions }
+
+view : Model -> Browser.Document Msg
+view model =
+    { title = "Chiron Portal"
+    , body =
+        [ Layout.view
+            { title = "Editor"
+            , content = viewCodeEditor { enableMonaco = True, model = model }
+            , detail = Instructions.viewInstructions onNext Done model.instructions
+            }
         ]
     }
 
-onNext: List String -> Maybe Msg
-onNext remaining = 
-    if List.isEmpty remaining then 
+
+onNext : List String -> Maybe Msg
+onNext remaining =
+    if List.isEmpty remaining then
         Nothing
+
     else
         Just (Instructions (String.join "\n" remaining))
 
-viewCodeEditor: { enableMonaco: Bool, model: Model } -> Element Msg
+
+viewCodeEditor : { enableMonaco : Bool, model : Model } -> Element Msg
 viewCodeEditor settings =
     let
-        enableMonaco = settings.enableMonaco
-        model = settings.model
-        editor = 
+        enableMonaco =
+            settings.enableMonaco
+
+        model =
+            settings.model
+
+        editor =
             { language = model.editor.language
-            , text = model.editor.text }
+            , text = model.editor.text
+            }
     in
-        if enableMonaco then
-            Element.column [width fill, height fill] 
-            [ Element.Input.button [] 
-                { onPress=Just (Dispatch "save")
-                , label=(Element.text "Render") 
+    if enableMonaco then
+        Element.column [ width fill, height fill ]
+            [ Element.Input.button []
+                { onPress = Just (Dispatch "save")
+                , label = Element.text "Render"
                 }
             , Editor.viewMonacoEditor editor
             ]
-        else 
-            Editor.viewMultilineEditor Save editor
 
--- Test Methods 
+    else
+        Editor.viewMultilineEditor Save editor
 
-viewSample: String -> Element.Element msg 
-viewSample markdown = 
+
+
+-- Test Methods
+
+
+viewSample : String -> Element.Element msg
+viewSample markdown =
     case Markdown.viewMarkdown markdown of
-        Ok rendered -> 
-            Element.column [spacing 20] rendered 
-        
-        Err errors -> 
-            Element.text errors 
+        Ok rendered ->
+            Element.column [ spacing 20 ] rendered
 
-sampleComponent : String 
-sampleComponent = """
+        Err errors ->
+            Element.text errors
+
+
+sampleComponent : String
+sampleComponent =
+    """
 # Component - Kubernetes in Docker (KIND)
 ```yaml
 id: "kind"
@@ -135,8 +176,10 @@ tools:
 ```
 """
 
-sampleLab : String 
-sampleLab = """
+
+sampleLab : String
+sampleLab =
+    """
 # Lab - Setup a dev-box 
 ```yaml
 id: "devbox-setup-2"
