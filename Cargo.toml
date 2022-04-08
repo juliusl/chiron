@@ -8,3 +8,7 @@ edition = "2021"
 [dependencies]
 serde = "1.0"
 serde_yaml = "0.8"
+mime_multipart = "0.6.0"
+hyper = "0.10.16"
+walkdir = "2"
+base64 = "0.13.0"
