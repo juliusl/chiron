@@ -8,7 +8,7 @@ use tooling::cloud_init::CloudInit;
 
 fn main() {
     let config = 
-        r#"
+r#"
 tools:
 - cloud_init:
   - install-golang.yml:jinja2

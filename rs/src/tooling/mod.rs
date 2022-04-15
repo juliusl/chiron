@@ -37,7 +37,7 @@ pub trait Tooling {
         Self::ensure_dir(user_home.as_ref().join(".config/chiron"))
     }
 
-    /// Ensures a directory exists
+    /// Ensures a directory exists, and then passes back the directory
     fn ensure_dir<T: AsRef<Path>>(root: T) -> String {
         let user_tool_dir = root
             .as_ref()
@@ -57,6 +57,7 @@ pub trait Tooling {
     fn parse_tools(object: serde_yaml::Value, installed: Vec<&str>) -> Vec<Tool> {
         let mut referenced_tools: Vec<Tool> = vec![];
 
+        // TODO: This could be more effecient
         if let Some(tools) = object.get("tools").and_then(Value::as_sequence) {
             for t in tools {
                 if let Some(tool) = installed.iter().find(|v| t.get(**v).is_some()) {

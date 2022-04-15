@@ -1,5 +1,6 @@
 use walkdir::WalkDir;
 
+/// Find all yaml files in a given directory
 pub fn yaml_files(dir: String) -> Vec<String> {
     // Walk the root directory and find where all the CURRENT files are
     let mut paths = vec![];

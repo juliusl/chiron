@@ -13,5 +13,6 @@ runcmd:
   - rm go1.18.linux-amd64.tar.gz
   - echo 'export PATH=$PATH:/usr/local/go/bin' >> /etc/bash.bashrc
   - echo 'export PATH=$PATH:/home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}/go/bin' >> /home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}/.profile
+  - as_user 'mkdir -p ~/go/bin'
   - log_done golang
   

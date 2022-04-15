@@ -1,0 +1,17 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+packages:
+ - docker.io
+
+runcmd:
+  - log_start minikube
+  - curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb 
+  - dpkg -i minikube_latest_amd64.deb
+  - as_user 'sudo usermod -aG docker $USER && newgrp docker'
+  - log_done minikube
