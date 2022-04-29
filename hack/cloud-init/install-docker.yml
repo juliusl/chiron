@@ -1,0 +1,8 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [no_replace]
+
+packages:
+ - docker.io
