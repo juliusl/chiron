@@ -1,0 +1,22 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+packages:
+ - netbase
+
+runcmd:
+  - log_start bondcompiler
+  - curl -sSL https://get.haskellstack.org/ | sh
+  - as_user 'git checkout https://github.com/microsoft/bond ~/code/deps/bond'
+  - as_user 'cd ~/code/deps/bond'
+  - as_user 'git checkout 9.0.0'
+  - as_user 'cd compiler'
+  - as_user 'stack build'
+  - as_user 'stack install'
+  - log_done bondcompiler
+  
