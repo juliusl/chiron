@@ -14,7 +14,7 @@ pub struct Tool {
 
 pub trait Tooling {
     /// returns the symbol used for this tool, must be valid yaml
-    fn symbol() -> &'static str;
+    fn tool_symbol() -> &'static str;
 
     /// installs this tool to the user's home directory
     fn install<T: AsRef<Path>>(self, user_home: T) -> Self;
@@ -41,7 +41,7 @@ pub trait Tooling {
     fn ensure_dir<T: AsRef<Path>>(root: T) -> String {
         let user_tool_dir = root
             .as_ref()
-            .join(Self::symbol())
+            .join(Self::tool_symbol())
             .to_str()
             .unwrap()
             .to_owned();

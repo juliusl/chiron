@@ -2,6 +2,7 @@ use hyper::{
     header::{ContentDisposition, ContentType, DispositionParam, DispositionType, Headers},
     mime::{Attr, Mime, SubLevel, TopLevel, Value},
 };
+use lifec::plugins::{ThunkContext, Plugin};
 use mime_multipart::{self, generate_boundary, write_multipart, Node, Part};
 use phf::phf_map;
 use std::{
@@ -21,6 +22,16 @@ use super::Tooling;
 pub struct CloudInit {
     user_local: String,
     user_cache: String,
+}
+
+impl Plugin<ThunkContext> for CloudInit {
+    fn symbol() -> &'static str {
+        "cloud_init"
+    }
+
+    fn call_with_context(context: &mut ThunkContext) {
+        todo!()
+    }
 }
 
 impl Tooling for CloudInit {
@@ -45,7 +56,7 @@ impl Tooling for CloudInit {
         self
     }
 
-    fn symbol() -> &'static str {
+    fn tool_symbol() -> &'static str {
         "cloud_init"
     }
 }
