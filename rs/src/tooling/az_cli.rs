@@ -8,7 +8,7 @@ impl Tooling for AzCli {
         todo!()
     }
 
-    fn symbol() -> &'static str {
+    fn tool_symbol() -> &'static str {
         todo!()
     }
 
