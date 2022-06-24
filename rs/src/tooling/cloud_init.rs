@@ -3,16 +3,18 @@ use hyper::{
     mime::{Attr, Mime, SubLevel, TopLevel, Value},
 };
 use lifec::plugins::{ThunkContext, Plugin};
-use mime_multipart::{self, generate_boundary, write_multipart, Node, Part};
+use logos::{Logos, Lexer};
+use mime_multipart::{self, generate_boundary, write_multipart, Node, Part, read_multipart_body};
 use phf::phf_map;
 use std::{
     collections::hash_map::DefaultHasher,
     hash::Hasher,
-    io::Write,
+    io::Write, fs::File, str::from_utf8,
 };
 
 use std::{
     fs,
+    fmt::Write as StringWrite,
     path::{Path, PathBuf},
 };
 
@@ -50,6 +52,7 @@ impl Tooling for CloudInit {
         for s in settings {
             if s.name == "cloud_init" {
                 self.make_mime(s.data);
+                self.read_mime();
             }
         }
 
@@ -116,6 +119,65 @@ impl CloudInit {
 
             if let Err(err) = writeln!(&mut f, "\n") {
                 panic!("{}", err);
+            }
+        }
+    
+    }
+
+    fn read_mime(&self) {
+        let path = PathBuf::from(&self.user_cache).join("user_data");
+
+        let mut multipart_headers = Headers::new();
+        if let Some(content) = fs::read_to_string(&path).ok() {
+            let lines: Vec<&str> = content.lines().collect();
+            let content_type = lines[0]; 
+            let mime = lines[1];
+            let mut lexer = MimeHeaders::lexer(content_type);
+            if let MimeHeaders::MultipartContentType(boundary) = lexer.next().expect("Content-Type header not found") {
+                let boundary_param = (Attr::Boundary, Value::Ext(boundary));
+                multipart_headers.set(ContentType(Mime(
+                    TopLevel::Multipart,
+                    SubLevel::Ext("mixed".to_string()),
+                    vec![boundary_param],
+                )));
+            }
+
+            if mime == "MIME-Version: 1.0" {
+                multipart_headers.set_raw("MIME-Version", vec![b"1.0".to_vec()]);
+            }
+        } else {
+            panic!("user_data could not be read");
+        }
+
+        if let Ok(mut f) = File::open(path) {
+            match read_multipart_body(&mut f, &multipart_headers, true){
+                Ok(nodes) => {
+                    for node in nodes {
+                        if let Node::File(node) = node {
+                            match fs::read_to_string(&node.path) {
+                                Ok(content) => {
+                                    let mut full_content = String::default();
+                                    for line in content.lines() {
+                                        write!(full_content, "{}", line).ok().expect("should work");
+                                    }
+
+                                    let decoded = base64::decode(full_content).ok().expect("decodes");
+                                    let decoded = from_utf8(&decoded).ok().expect("parses");
+                                    
+                                    if let Some(file_name) = node.filename().ok().expect("file_name should've been passed as a header") {
+                                        if fs::create_dir_all(PathBuf::from(&file_name).parent().expect("should've had a parent directory")).is_ok() {
+                                            fs::write(file_name, decoded).expect("file written");
+                                        }
+                                    }
+                                },
+                                Err(_) => {
+
+                                },
+                            }
+                        }
+                    }
+                },
+                Err(err) => panic!("{:?}", err)
             }
         }
     }
@@ -204,3 +266,23 @@ const CLOUD_INIT_MIME_TYPES: phf::Map<&'static str, &'static str> = phf_map! {
         "x-shellscript-per-instance" => r#"text/x-shellscript-per-instance; charset="utf8""#,
         "x-shellscript-per-once" => r#"text/x-shellscript-per-once; charset="utf8""#,
 };
+
+fn from_multipart_header(lex: &mut Lexer<MimeHeaders>) -> Option<String> {
+    let boundary = lex.remainder().trim_end_matches("\"");
+
+    Some(boundary.to_string())
+}
+
+/// Elements contained within an attribute graph
+#[derive(Logos, Debug, Hash, Clone, PartialEq, PartialOrd)]
+enum MimeHeaders {
+    #[token("Content-Type: multipart/mixed; boundary=\"", from_multipart_header)]
+    MultipartContentType(String),
+    // Logos requires one token variant to handle errors,
+    // it can be named anything you wish.
+    #[error]
+    // We can also use this variant to define whitespace,
+    // or any other matches we wish to skip.
+    #[regex(r"[ \t\n\f]+", logos::skip)]
+    Error,
+}

@@ -26,17 +26,18 @@ tools:
         let cloud_init = CloudInit::default().install(home_dir);
 
         cloud_init.init(config);
+        
     } else {
         panic!("Could not read HOME env variable");
     }
 
-    if let Some(file) = AttributeGraph::load_from_file(".runmd") {
-        open(
-            "demo",
-            RuntimeEditor::new(Runtime::from(file)),
-            NodeDemo::default(),
-        );
-    }
+    // if let Some(file) = AttributeGraph::load_from_file(".runmd") {
+    //     open(
+    //         "demo",
+    //         RuntimeEditor::new(Runtime::from(file)),
+    //         NodeDemo::default(),
+    //     );
+    // }
 }
 
 struct Chiron;
