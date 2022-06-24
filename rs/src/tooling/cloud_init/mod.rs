@@ -11,12 +11,14 @@ use std::{
     hash::Hasher,
     io::Write, fs::File, str::from_utf8,
 };
-
 use std::{
     fs,
     fmt::Write as StringWrite,
     path::{Path, PathBuf},
 };
+
+mod cloud_config;
+pub use cloud_config::CloudConfig;
 
 use super::Tooling;
 
@@ -251,30 +253,25 @@ impl CloudInit {
     }
 }
 
-// TODO: The only ones I know are correct are jinja2
 const CLOUD_INIT_MIME_TYPES: phf::Map<&'static str, &'static str> = phf_map! {
-        "cloud-boothook" => r#"text/cloud-boothook; charset="utf8""#,
-        "cloud-config" => r#"text/cloud-config; charset="utf8""#,
-        "cloud-config-archive" => r#"text/cloud-config-archive; charset="utf8""#,
-        "cloud-config-jsonp" => r#"text/cloud-config-jsonp; charset="utf8""#,
         "jinja2" => r#"text/jinja2; charset="utf8""#,
-        "part-handler" => r#"text/part-handler; charset="utf8""#,
-        "upstart-job" => r#"text/upstart-job; charset="utf8""#,
-        "x-include-once-url" => r#"text/x-include-once-url; charset="utf8""#,
-        "x-include-url" => r#"text/x-include-url; charset="utf8""#,
-        "x-shellscript" => r#"text/x-shellscript; charset="utf8""#,
-        "x-shellscript-per-boot" => r#"text/x-shellscript-per-boot; charset="utf8""#,
-        "x-shellscript-per-instance" => r#"text/x-shellscript-per-instance; charset="utf8""#,
-        "x-shellscript-per-once" => r#"text/x-shellscript-per-once; charset="utf8""#,
+        // TODO: The only ones I know are correct are jinja2
+        // "cloud-boothook" => r#"text/cloud-boothook; charset="utf8""#,
+        // "cloud-config" => r#"text/cloud-config; charset="utf8""#,
+        // "cloud-config-archive" => r#"text/cloud-config-archive; charset="utf8""#,
+        // "cloud-config-jsonp" => r#"text/cloud-config-jsonp; charset="utf8""#,
+        // "part-handler" => r#"text/part-handler; charset="utf8""#,
+        // "upstart-job" => r#"text/upstart-job; charset="utf8""#,
+        // "x-include-once-url" => r#"text/x-include-once-url; charset="utf8""#,
+        // "x-include-url" => r#"text/x-include-url; charset="utf8""#,
+        // "x-shellscript" => r#"text/x-shellscript; charset="utf8""#,
+        // "x-shellscript-per-boot" => r#"text/x-shellscript-per-boot; charset="utf8""#,
+        // "x-shellscript-per-instance" => r#"text/x-shellscript-per-instance; charset="utf8""#,
+        // "x-shellscript-per-once" => r#"text/x-shellscript-per-once; charset="utf8""#,
 };
 
-fn from_multipart_header(lex: &mut Lexer<MimeHeaders>) -> Option<String> {
-    let boundary = lex.remainder().trim_end_matches("\"");
 
-    Some(boundary.to_string())
-}
-
-/// Elements contained within an attribute graph
+/// Parse the boundary value from a multipart content type
 #[derive(Logos, Debug, Hash, Clone, PartialEq, PartialOrd)]
 enum MimeHeaders {
     #[token("Content-Type: multipart/mixed; boundary=\"", from_multipart_header)]
@@ -286,4 +283,10 @@ enum MimeHeaders {
     // or any other matches we wish to skip.
     #[regex(r"[ \t\n\f]+", logos::skip)]
     Error,
+}
+
+fn from_multipart_header(lex: &mut Lexer<MimeHeaders>) -> Option<String> {
+    let boundary = lex.remainder().trim_end_matches("\"");
+
+    Some(boundary.to_string())
 }
