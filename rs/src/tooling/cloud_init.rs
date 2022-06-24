@@ -124,6 +124,7 @@ impl CloudInit {
     
     }
 
+    /// reads/parses the user_data file, and writes attachments to disk
     fn read_mime(&self) {
         let path = PathBuf::from(&self.user_cache).join("user_data");
 
@@ -170,8 +171,8 @@ impl CloudInit {
                                         }
                                     }
                                 },
-                                Err(_) => {
-
+                                Err(err) => {
+                                    eprintln!("Error reading file_part: {}", err);
                                 },
                             }
                         }
