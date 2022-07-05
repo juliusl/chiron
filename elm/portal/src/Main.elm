@@ -145,38 +145,6 @@ viewCodeEditor settings =
     else
         Editor.viewMultilineEditor Save editor
 
-
-
--- Test Methods
-
-
-viewSample : String -> Element.Element msg
-viewSample markdown =
-    case Markdown.viewMarkdown markdown of
-        Ok rendered ->
-            Element.column [ spacing 20 ] rendered
-
-        Err errors ->
-            Element.text errors
-
-
-sampleComponent : String
-sampleComponent =
-    """
-# Component - Kubernetes in Docker (KIND)
-```yaml
-id: "kind"
-display_name: "Install KIND"
-description: "Installing KIND"
-depends_on:
-- golang
-tools:
-  cloud-init:
-  - install-kind.yml:jinja2
-```
-"""
-
-
 sampleLab : String
 sampleLab =
     """

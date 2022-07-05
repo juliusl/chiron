@@ -15,3 +15,4 @@ rs/Cargo.lock
 /target
 elm-stuff
 user-data
+**/**/.run/

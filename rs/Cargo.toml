@@ -13,6 +13,7 @@ phf = { version = "0.10", features = ["macros"] }
 
 lifec = { git = "https://github.com/juliusl/lifec.git", branch = "main" }
 knot = { git = "https://github.com/juliusl/knot.git", branch="main" }
+shinsu = { git = "https://github.com/juliusl/shinsu.git", branch="main" }
 # Cloud-Init Make-Mime 
 base64 = "0.13.0"
 mime_multipart = "0.6.0"
