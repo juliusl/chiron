@@ -8,8 +8,9 @@ use lifec::{
     Runtime,  
     Extension
 };
-use lifec_poem::StaticFiles;
+use lifec_poem::{StaticFiles, WebApp, AppHost};
 use lifec::*;
+use poem::{handler, web::Path, Route, get};
 use shinsu::NodeEditor;
 use std::env;
 
@@ -25,6 +26,7 @@ fn main() {
         runtime.install::<Call, OpenFile>();
         runtime.install::<Call, WriteFile>();
         runtime.install::<Call, StaticFiles>();
+        runtime.install::<Call, AppHost<Empty>>();
 
         let args: Vec<String> = env::args().collect();
         
@@ -107,5 +109,20 @@ impl<'a> System<'a> for Empty {
     type SystemData = ();
 
     fn run(&mut self, _: Self::SystemData) {
+    }
+}
+
+#[handler]
+fn hello(Path(name): Path<String>) -> String {
+    format!("hello: {}", name)
+}
+
+impl WebApp for Empty {
+    fn create(_: &mut plugins::ThunkContext) -> Self {
+        Empty{}
+    }
+
+    fn routes(&mut self) -> poem::Route {
+        Route::new().at("/hello/:name", get(hello))
     }
 }
