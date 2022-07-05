@@ -35,15 +35,15 @@ impl Extension for Host {
                             if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "host") {
                                 app_world.write_component::<Connection>()
                                     .insert(first, Connection::default()).ok();
+                            }
+                            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup") {
+                                app_world.write_component::<Connection>()
+                                    .insert(first, Connection::default()).ok();
+                            }
                         }
-                        if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup") {
-                            app_world.write_component::<Connection>()
-                                .insert(first, Connection::default()).ok();
-                        }
-                    }
+                    });
                 });
             });
-        });
 
         self.0.on_ui(app_world, ui);
     }
