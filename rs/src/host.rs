@@ -47,7 +47,7 @@ impl Extension for Host {
                         }
                         if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup") {
                             app_world.write_component::<Connection>()
-                            .insert(first, Connection::default()).ok();
+                                .insert(first, Connection::default()).ok();
                         }
                     }
                 });
@@ -89,7 +89,7 @@ impl Extension for Host {
             }
             if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup") {
                 app_world.write_component::<Connection>()
-                .insert(first, Connection::default()).ok();
+                    .insert(first, Connection::default()).ok();
             }
             self.1 = false;
         }

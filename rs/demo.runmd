@@ -22,6 +22,7 @@ add file_src .text ../elm/portal/index.html
 # Setup host directory 
 ``` setup_portal write_files
 add node_title .text Portal Setup
+add work_dir   .text .run/portal
 ```
 
 ``` main host

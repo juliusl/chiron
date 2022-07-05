@@ -3,12 +3,14 @@ use lifec::{
     plugins::{Project, OpenFile, WriteFile, Process}, 
     editor::Call,
     open, 
-    Runtime, 
-    start, Extension, App
+    start,
+    App,
+    Runtime,  
+    Extension
 };
 use shinsu::NodeEditor;
 use specs::{DispatcherBuilder, System};
-use std::env::{self};
+use std::env;
 
 mod tooling;
 
@@ -37,8 +39,10 @@ fn main() {
         } else {
             open("chiron", 
             Empty, 
-            Main(Host::from(runtime), NodeEditor::default())
-            )
+            Main(
+                Host::from(runtime), 
+                NodeEditor::default()
+            ))
         }
     }
 }
