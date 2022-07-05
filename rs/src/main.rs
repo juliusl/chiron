@@ -8,8 +8,9 @@ use lifec::{
     Runtime,  
     Extension
 };
+use lifec_poem::StaticFiles;
+use lifec::*;
 use shinsu::NodeEditor;
-use specs::{DispatcherBuilder, System};
 use std::env;
 
 mod tooling;
@@ -23,7 +24,7 @@ fn main() {
         runtime.install::<Call, Process>();
         runtime.install::<Call, OpenFile>();
         runtime.install::<Call, WriteFile>();
-        runtime.install::<Call, Host>();
+        runtime.install::<Call, StaticFiles>();
 
         let args: Vec<String> = env::args().collect();
         
@@ -49,7 +50,7 @@ fn main() {
 struct Main(Host, NodeEditor); 
 
 impl Extension for Main {
-    fn configure_app_world(world: &mut lifec::plugins::World) {
+    fn configure_app_world(world: &mut World) {
         NodeEditor::configure_app_world(world);
         Host::configure_app_world(world);
     }
@@ -59,12 +60,12 @@ impl Extension for Main {
         Host::configure_app_systems(dispatcher);
     }
 
-    fn on_window_event(&'_ mut self, app_world: &specs::World, event: &'_ lifec::editor::WindowEvent<'_>) {
+    fn on_window_event(&'_ mut self, app_world: &World, event: &'_ lifec::editor::WindowEvent<'_>) {
         self.0.on_window_event(app_world, event);
         self.1.on_window_event(app_world, event);
     }
 
-    fn on_ui(&'_ mut self, app_world: &specs::World, ui: &'_ imgui::Ui<'_>) {
+    fn on_ui(&'_ mut self, app_world: &World, ui: &'_ imgui::Ui<'_>) {
         self.0.on_ui(app_world, ui);
 
         Window::new("Chiron Tools")
@@ -75,12 +76,12 @@ impl Extension for Main {
             });
     }
 
-    fn on_run(&'_ mut self, app_world: &specs::World) {
+    fn on_run(&'_ mut self, app_world: &World) {
         self.0.on_run(app_world);
         self.1.on_run(app_world);
     }
     
-    fn on_maintain(&'_ mut self, app_world: &mut specs::World) {
+    fn on_maintain(&'_ mut self, app_world: &mut World) {
         self.0.on_maintain(app_world);
         self.1.on_maintain(app_world);
     }

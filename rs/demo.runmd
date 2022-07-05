@@ -7,7 +7,7 @@ define d_app write_file  .symbol setup_portal
 ```
 
 ``` host call
-define e_app host        .symbol main
+define e_app static_files  .symbol main
 ```
 
 # Portal files
@@ -25,7 +25,7 @@ add node_title .text Portal Setup
 add work_dir   .text .run/portal
 ```
 
-``` main host
+``` main static_files
 add address    .text localhost:3000
 add work_dir   .text .run/portal
 add node_title .text Portal Host 

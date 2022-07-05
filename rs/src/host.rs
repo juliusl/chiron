@@ -1,15 +1,6 @@
 use imgui::{Window, MenuItem};
-use lifec::{Runtime, Extension, editor::{RuntimeEditor, Call, WindowEvent}, plugins::{Plugin, ThunkContext, Connection}, AttributeGraph};
-use poem::{Route, Server, endpoint::StaticFilesEndpoint, listener::TcpListener};
-use specs::{Component, DispatcherBuilder, World, WorldExt};
-use specs::storage::DefaultVecStorage;
-use tokio::select;
-use tokio::sync::oneshot::Sender;
-use tokio::task::JoinHandle;
+use lifec::{*, editor::{RuntimeEditor, Call, WindowEvent}, plugins::Connection};
 
-/// Host component add's a poem server to the entity
-#[derive(Default, Component)]
-#[storage(DefaultVecStorage)]
 pub struct Host(RuntimeEditor, bool);
 
 impl From<Runtime> for Host {
@@ -25,7 +16,7 @@ impl AsRef<Runtime> for Host {
 }
 
 impl Extension for Host {
-    fn configure_app_world(world: &mut lifec::plugins::World) {
+    fn configure_app_world(world: &mut World) {
         RuntimeEditor::configure_app_world(world);
     }
 
@@ -76,7 +67,7 @@ impl Extension for Host {
         self.0.on_window_event(app_world, event)
     }
 
-    fn on_run(&'_ mut self, app_world: &lifec::plugins::World) {
+    fn on_run(&'_ mut self, app_world: &World) {
         self.0.on_run(app_world);
     }
 
@@ -93,55 +84,5 @@ impl Extension for Host {
             }
             self.1 = false;
         }
-    }
-}
-
-impl Plugin<ThunkContext> for Host {
-    fn symbol() -> &'static str {
-        "host"
-    }
-
-    fn description() -> &'static str {
-        "Starts a static-file server host for a file directory."
-    }
-
-    fn call_with_context(context: &mut ThunkContext) -> Option<(JoinHandle<ThunkContext>, Sender<()>)> {
-        context.clone().task(|cancel_source| {
-            let tc = context.clone();
-            async {
-                if let Some(work_dir) = tc.as_ref().find_text("work_dir") {
-                    tc.update_status_only(format!("Serving work_dir {}", work_dir)).await;
-                    let app = Route::new().nest(
-                        "/",
-                        StaticFilesEndpoint::new(
-                            work_dir
-                        ),
-                    );
-
-                    if let Some(address) = tc.as_ref().find_text("address") {
-                        tc.update_status_only(format!("Starting {}", address)).await;
-                        select! {
-                            result = Server::new(
-                                TcpListener::bind(address))
-                                .run(app) => {
-                                    match result {
-                                        Ok(_) => {
-                                            tc.update_status_only("Server is exiting").await; 
-                                        },
-                                        Err(err) => {
-                                            tc.update_status_only(format!("Server error exit {}", err)).await;
-                                        },
-                                    }
-                            }
-                            _ = cancel_source => {
-                                tc.update_status_only("Cancelling, server is exiting").await; 
-                            }
-                        }
-                    }
-                }
-
-                Some(tc)
-            }
-        })
     }
 }

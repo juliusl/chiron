@@ -12,13 +12,13 @@ walkdir = "2"
 phf = { version = "0.10", features = ["macros"] }
 
 lifec = { git = "https://github.com/juliusl/lifec.git", branch = "main" }
+lifec_poem = { git = "https://github.com/juliusl/lifec_poem.git", branch = "main" }
 knot = { git = "https://github.com/juliusl/knot.git", branch="main" }
 shinsu = { git = "https://github.com/juliusl/shinsu.git", branch="main" }
 # Cloud-Init Make-Mime 
 base64 = "0.13.0"
 mime_multipart = "0.6.0"
 hyper = "0.10.16"
-specs = "0.17.0"
 imgui = "0.8.2"
 logos = "0.12.1"
 poem = { version = "1.3.32", features = ["server", "static-files"] }
