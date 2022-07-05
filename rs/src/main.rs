@@ -32,8 +32,7 @@ fn main() {
                 start(
                 Host::from(runtime), 
                 &[
-                    "setup", 
-                    "host"
+                    "app",
                 ]);
             }
         } else {

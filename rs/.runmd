@@ -1,12 +1,9 @@
 # Sets up a static file host for elm portal
-``` setup call
+``` app call
 define a_app open_file   .symbol script
 define b_app write_file  .symbol setup
 define c_app open_file   .symbol index
 define d_app write_file  .symbol setup
-```
-
-``` host call
 define e_app host        .symbol main
 ```
 
