@@ -1,8 +1,7 @@
 use lifec::{
-    plugins::{BlockContext, Project},
+    plugins::BlockContext,
     AttributeGraph, RuntimeState,
 };
-use serde_yaml::Value;
 use specs::storage::HashMapStorage;
 use specs::Component;
 use std::fmt::Display;

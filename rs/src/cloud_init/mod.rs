@@ -2,7 +2,6 @@ use hyper::{
     header::{ContentDisposition, ContentType, DispositionParam, DispositionType, Headers},
     mime::{Attr, Mime, SubLevel, TopLevel, Value},
 };
-use lifec::plugins::{ThunkContext, Plugin};
 use logos::{Logos, Lexer};
 use mime_multipart::{self, generate_boundary, write_multipart, Node, Part, read_multipart_body};
 use phf::phf_map;
@@ -17,8 +16,9 @@ use std::{
     path::{Path, PathBuf},
 };
 
-mod cloud_config;
-pub use cloud_config::CloudConfig;
+mod cloud_init;
+pub use cloud_init::CloudInit;
+pub use cloud_init::CloudConfig;
 
 use super::Tooling;
 
@@ -26,16 +26,6 @@ use super::Tooling;
 pub struct CloudInit {
     user_local: String,
     user_cache: String,
-}
-
-impl Plugin<ThunkContext> for CloudInit {
-    fn symbol() -> &'static str {
-        "cloud_init"
-    }
-
-    fn call_with_context(context: &mut ThunkContext) {
-        todo!()
-    }
 }
 
 impl Tooling for CloudInit {
@@ -49,7 +39,7 @@ impl Tooling for CloudInit {
     /// From config, format all referenced cloud-init files into a MIME message
     /// Save as user_data in the user's .cache folder (user_cache)
     fn init(self, config: &str) -> Self {
-        let settings = Self::parse_tools(Self::yaml(config), vec![Self::symbol()]);
+        let settings = Self::parse_tools(Self::yaml(config), vec![Self::tool_symbol()]);
 
         for s in settings {
             if s.name == "cloud_init" {

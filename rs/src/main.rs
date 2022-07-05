@@ -1,31 +1,41 @@
-use std::{panic, path::Path};
+use std::env::{self};
 
-mod helpers;
+use lifec::{
+    plugins::{Project, OpenFile, WriteFile, Process}, 
+    editor::Call,
+    open, 
+    Runtime, 
+    start
+};
+
+
 mod tooling;
 
-use specs::{World, DispatcherBuilder};
-use tooling::Tooling;
-use tooling::CloudInit;
-
+mod host;
+use host::Host;
 
 fn main() {
-    let config = 
-r#"
-tools:
-    cloud_init:
-     - install-golang.yml:jinja2
-     - install-kind.yml:jinja2
-"#;
+    if let Some(project) = Project::runmd() {
+        let mut runtime = Runtime::new(project.clone());
+        runtime.install::<Call, Process>();
+        runtime.install::<Call, OpenFile>();
+        runtime.install::<Call, WriteFile>();
+        runtime.install::<Call, Host>();
 
-    if let Ok(home_dir) = std::env::var("HOME") {
-        let home_dir = Path::new(&home_dir);
-
-        // Install Tools
-        let cloud_init = CloudInit::default().install(home_dir);
-
-        cloud_init.init(config);
+        let args: Vec<String> = env::args().collect();
         
-    } else {
-        panic!("Could not read HOME env variable");
+        if let Some(arg) = args.get(1) {
+            if arg == "--host" {
+                start(
+                Host::from(runtime), 
+                "host"
+                );
+            }
+        } else {
+            open("chiron", 
+            Runtime::new(project.clone()), 
+            Host::from(runtime)
+            )
+        }
     }
 }

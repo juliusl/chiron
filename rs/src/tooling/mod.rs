@@ -1,31 +1,12 @@
 use std::{fs, path::Path};
 
-use lifec::editor::Extension;
 use serde_yaml::Value;
-
-mod cloud_init;
-pub use cloud_init::CloudInit;
-pub use cloud_init::CloudConfig;
 
 /// Tool's are initialized by a list of strings which the tool will interpret to initialize it's state
 #[derive(Debug)]
 pub struct Tool {
     name: String,
     data: Vec<String>,
-}
-
-impl Extension for Tool {
-    fn configure_app_world(world: &mut specs::World) {
-        todo!()
-    }
-
-    fn configure_app_systems(dispatcher: &mut specs::DispatcherBuilder) {
-        todo!()
-    }
-
-    fn on_ui(&'_ mut self, app_world: &specs::World, ui: &'_ imgui::Ui<'_>) {
-        todo!()
-    }
 }
 
 pub trait Tooling {
@@ -83,10 +64,11 @@ pub trait Tooling {
                     .map(str::to_string)
                     .collect();
 
-                referenced_tools.push(Tool {
-                    name: tool.to_string(),
-                    data: settings,
-                });
+                referenced_tools.push(
+                    Tool {
+                        name: tool.to_string(),
+                        data: settings,
+                    });
             }
         }
 
