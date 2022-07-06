@@ -2,7 +2,7 @@ pub mod config;
 pub mod metadata;
 
 use serde::{Deserialize};
-use rocksdb::{IteratorMode, Options, DB, ColumnFamily, DBWithThreadMode, SingleThreaded};
+use rocksdb::{IteratorMode, Options, DB};
 use std::{str, ops::Deref};
 
 /// Locates all objects in the column family: `object_name`, stored in the db at `path`
@@ -52,12 +52,4 @@ where
             Err(_) => None 
         }
     }
-}
-
-fn scan(opened: &DBWithThreadMode<SingleThreaded>, handle: &ColumnFamily) {
-    opened.iterator_cf(handle, IteratorMode::Start).for_each(|(_, v)| {
-
-        println!("{:?}", str::from_utf8(&v));
-
-    });
 }

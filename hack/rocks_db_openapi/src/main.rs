@@ -1,10 +1,18 @@
-use std::collections::BTreeMap;
-use poem::{http::StatusCode, listener::Listener, listener::TcpListener, listener::RustlsConfig, Route, Server, endpoint::{StaticFileEndpoint, StaticFilesEndpoint}};
+use poem::{
+    endpoint::StaticFilesEndpoint,
+    http::StatusCode,
+    listener::TcpListener,
+    Route, Server,
+};
 use poem_openapi::{
     param::Query,
     payload::{Json, Response},
     OpenApi, OpenApiService,
 };
+use std::collections::BTreeMap;
+
+use lifec::plugins::ThunkContext;
+use lifec_poem::WebApp;
 
 mod models;
 use models::config::{
@@ -13,20 +21,27 @@ use models::config::{
 };
 
 use models::metadata::{
-    list_repositories, list_repository_manifests, list_repository_tags,
-    Repository, ManifestMetadata, TagMetadata
+    list_repositories, list_repository_manifests, list_repository_tags, ManifestMetadata,
+    Repository, TagMetadata,
 };
 
 const CONFIG_STORE_ROOT_PATH: &str = "/var/acr/data/rocksdb/config";
 const METADATA_STORE_ROOT_PATH: &str = "/var/acr/data/rocksdb/metadata";
 
-struct Api;
+struct Api(
+    /// config store path
+    String,
+    /// metadata store path
+    String, 
+);
 
 #[OpenApi]
 impl Api {
     #[oai(path = "/config", method = "get")]
     async fn config(&self) -> Response<Json<Vec<Config>>> {
-        match get_registry_config_store_config(CONFIG_STORE_ROOT_PATH) {
+        let Self(config_store_path, _) = self;
+
+        match get_registry_config_store_config(config_store_path) {
             Some(map) => Response::new(Json(map)),
             _ => Response::new(Json(vec![])).status(StatusCode::NOT_FOUND),
         }
@@ -48,7 +63,10 @@ impl Api {
     }
 
     #[oai(path = "/metadata/repositories", method = "get")]
-    async fn metadata_repositories(&self, registry_id: Query<String>) -> Response<Json<Vec<Repository>>> {
+    async fn metadata_repositories(
+        &self,
+        registry_id: Query<String>,
+    ) -> Response<Json<Vec<Repository>>> {
         match list_repositories(METADATA_STORE_ROOT_PATH, registry_id.as_str()) {
             Some(map) => Response::new(Json(map)),
             _ => Response::new(Json(vec![])).status(StatusCode::NOT_FOUND),
@@ -56,7 +74,10 @@ impl Api {
     }
 
     #[oai(path = "/metadata/manifests", method = "get")]
-    async fn metadata_manifests(&self, registry_id: Query<String>) -> Response<Json<Vec<ManifestMetadata>>> {
+    async fn metadata_manifests(
+        &self,
+        registry_id: Query<String>,
+    ) -> Response<Json<Vec<ManifestMetadata>>> {
         match list_repository_manifests(METADATA_STORE_ROOT_PATH, registry_id.as_str()) {
             Some(map) => Response::new(Json(map)),
             _ => Response::new(Json(vec![])).status(StatusCode::NOT_FOUND),
@@ -72,17 +93,48 @@ impl Api {
     }
 }
 
+impl WebApp for Api {
+    fn create(_: &mut ThunkContext) -> Self {
+        todo!()
+    }
+
+    fn routes(&mut self) -> Route {
+        let api = Api(CONFIG_STORE_ROOT_PATH.to_string(), METADATA_STORE_ROOT_PATH.to_string());
+        let api_service = OpenApiService::new(api, "OnPrem Connected Registry", "0.1")
+            .server("http://localhost:8000/api");
+
+        let swagger = api_service.swagger_ui();
+
+        Route::new()
+            .nest("/api", api_service)
+            .nest("/swagger", swagger)
+            .at(
+                "/",
+                StaticFilesEndpoint::new("/root/dash").index_file("index.html"),
+            )
+    }
+}
+
 #[tokio::main]
 async fn main() -> Result<(), std::io::Error> {
-    let api_service = OpenApiService::new(Api, "OnPrem Connected Registry", "0.1")
-        .server("http://localhost:8000/api");
+    let api_service = OpenApiService::new(
+            Api(
+                CONFIG_STORE_ROOT_PATH.to_string(), 
+                METADATA_STORE_ROOT_PATH.to_string()
+            ), 
+    "OnPrem Connected Registry", 
+        "0.1"
+        ).server("http://localhost:8000/api");
 
     let swagger = api_service.swagger_ui();
 
     let app = Route::new()
         .nest("/api", api_service)
         .nest("/swagger", swagger)
-        .at("/", StaticFilesEndpoint::new("/root/dash").index_file("index.html"));
+        .at(
+            "/",
+            StaticFilesEndpoint::new("/root/dash").index_file("index.html"),
+        );
 
     // Enable TLS
     // let key = fs::read_to_string("/root/certs/tls.key").unwrap();
