@@ -21,6 +21,9 @@ use cloud_init::ReadMime;
 mod host;
 use host::Host;
 
+mod elm;
+use elm::MakeElm;
+
 fn main() {
     if let Some(project) = Project::runmd() {
         let mut runtime = Runtime::new(project.clone());
@@ -33,6 +36,7 @@ fn main() {
         runtime.install::<Call, ReadMime>();
         runtime.install::<Call, StaticFiles>();
         runtime.install::<Call, AppHost<Empty>>();
+        runtime.install::<Call, MakeElm>();
 
         runtime.add_config(Config("cloud_init", |tc|{ 
             tc.as_mut().add_text_attr("src_dir", "lib");
@@ -50,6 +54,11 @@ fn main() {
                 .add_text_attr("src_dir", "lib");
         }));
 
+        runtime.add_config(Config("elm_portal", |tc| {
+            tc.as_mut()
+                .with_text("elm_src", "lib/elm/portal/src/Main.elm")
+                .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
+        }));
 
         let args: Vec<String> = env::args().collect();
         
