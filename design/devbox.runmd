@@ -1,3 +1,9 @@
+# Defining dev box runtime
+``` dev_box runtime
+define setup call
+define host  call
+```
+
 # Setup dev box
 ``` setup call 
 define a_azcli   install    .text   cloud_init
@@ -15,4 +21,11 @@ define j_staging write_file .symbol dev_box
 ``` dev_box write_file
 add work_dir .text .config/cloud_init
 add node_title .text Setup install files
+```
+
+# (TODO) Host dev box
+``` host call
+```
+
+``` dev_box app_host
 ```
