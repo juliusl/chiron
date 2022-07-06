@@ -32,11 +32,11 @@ impl Extension for Host {
                 ui.menu_bar(|| {
                     ui.menu("Actions", ||{
                         if MenuItem::new("Create portal host").build(ui) {
-                            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "host") {
+                            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "host".to_string()) {
                                 app_world.write_component::<Connection>()
                                     .insert(first, Connection::default()).ok();
                             }
-                            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup") {
+                            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup".to_string()) {
                                 app_world.write_component::<Connection>()
                                     .insert(first, Connection::default()).ok();
                             }
@@ -74,11 +74,11 @@ impl Extension for Host {
     fn on_maintain(&'_ mut self, app_world: &mut World) {
         if self.1 {
             app_world.delete_all();
-            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "host") {
+            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "host".to_string()) {
                     app_world.write_component::<Connection>()
                         .insert(first, Connection::default()).ok();
             }
-            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup") {
+            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup".to_string()) {
                 app_world.write_component::<Connection>()
                     .insert(first, Connection::default()).ok();
             }

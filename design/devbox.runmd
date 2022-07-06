@@ -1,0 +1,18 @@
+# Setup dev box
+``` setup call 
+define a_azcli   install    .text   cloud_init
+define b_staging write_file .symbol dev_box
+define c_golang  install    .text   cloud_init 
+define d_staging write_file .symbol dev_box
+define e_docker  install    .text   cloud_init
+define f_staging write_file .symbol dev_box
+define g_azure   install    .text   cloud_init_enter
+define h_staging write_file .symbol dev_box
+define i_azure   install    .text   cloud_init_exit
+define j_staging write_file .symbol dev_box 
+```
+
+``` dev_box write_file
+add work_dir .text .config/cloud_init
+add node_title .text Setup install files
+```

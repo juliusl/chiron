@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Http exposing (..)
-import Json.Decode as Decode exposing (Decoder, field, decodeString, float, int, nullable, string)
+import Json.Decode as Decode exposing (Decoder, field, string)
 import Html exposing (Html)
 import Element exposing (..)
 import Element.Background as Background

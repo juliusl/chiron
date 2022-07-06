@@ -1,6 +1,6 @@
 use imgui::Window;
 use lifec::{
-    plugins::{Project, OpenFile, WriteFile, Process}, 
+    plugins::{Project, OpenFile, WriteFile, Process, Timer, Config}, 
     editor::Call,
     open, 
     start,
@@ -14,7 +14,9 @@ use poem::{handler, web::Path, Route, get};
 use shinsu::NodeEditor;
 use std::env;
 
-mod tooling;
+mod cloud_init;
+use cloud_init::{MakeMime, Install};
+use cloud_init::ReadMime;
 
 mod host;
 use host::Host;
@@ -22,11 +24,32 @@ use host::Host;
 fn main() {
     if let Some(project) = Project::runmd() {
         let mut runtime = Runtime::new(project.clone());
+        runtime.install::<Call, Timer>();
         runtime.install::<Call, Process>();
         runtime.install::<Call, OpenFile>();
         runtime.install::<Call, WriteFile>();
+        runtime.install::<Call, Install>();
+        runtime.install::<Call, MakeMime>();
+        runtime.install::<Call, ReadMime>();
         runtime.install::<Call, StaticFiles>();
         runtime.install::<Call, AppHost<Empty>>();
+
+        runtime.add_config(Config("cloud_init", |tc|{ 
+            tc.as_mut().add_text_attr("src_dir", "lib");
+        }));
+
+        runtime.add_config(Config("cloud_init_exit", |tc|{ 
+            tc.as_mut()
+                .with_text("src_type", "exit")
+                .add_text_attr("src_dir", "lib");
+        }));
+
+        runtime.add_config(Config("cloud_init_enter", |tc|{ 
+            tc.as_mut()
+                .with_text("src_type", "enter")
+                .add_text_attr("src_dir", "lib");
+        }));
+
 
         let args: Vec<String> = env::args().collect();
         
