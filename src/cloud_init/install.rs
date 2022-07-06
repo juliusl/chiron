@@ -1,6 +1,6 @@
 use lifec::{plugins::{ThunkContext, Plugin, OpenFile}, Component, DenseVecStorage};
 
-/// Component that gets an install fragment from lib/cloud_init
+/// Opens a cloud_init config part into storage
 #[derive(Component, Default)]
 #[storage(DenseVecStorage)]
 pub struct Install; 
@@ -11,7 +11,7 @@ impl Plugin<ThunkContext> for Install {
     }
 
     fn description() -> &'static str {
-        "Opens an install config from {src_dir}/cloud_init"
+        "Loads an install config from {src_dir}/cloud_init/{src_type}-{block_name}.yml"
     }
 
     fn call_with_context(context: &mut ThunkContext) -> Option<lifec::plugins::AsyncContext> {
