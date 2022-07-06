@@ -13,11 +13,11 @@ define f_app app_host      .symbol app
 
 # Portal files
 ``` script open_file
-add file_src .text ../elm/portal/elm.js
+add file_src .text lib/elm/portal/elm.js
 ```
 
 ``` index open_file
-add file_src .text ../elm/portal/index.html
+add file_src .text lib/elm/portal/index.html
 ```
 
 # Setup host directory 

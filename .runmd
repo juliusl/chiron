@@ -8,15 +8,17 @@ define e_app static_files .symbol main
 ```
 
 # Portal files
+- Opens files to host from elm folder.
 ``` script open_file
-add file_src .text ../elm/portal/elm.js
+add file_src .text lib/elm/portal/elm.js
 ```
 
 ``` index open_file
-add file_src .text ../elm/portal/index.html
+add file_src .text lib/elm/portal/index.html
 ```
 
 # Setup host directory 
+- Writes files to host to work_dir.
 ``` setup_portal write_file
 add node_title .text Portal Setup
 add work_dir   .text .run/portal
