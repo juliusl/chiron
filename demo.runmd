@@ -29,9 +29,10 @@ add work_dir   .text .run/portal
 ``` main static_files
 add address    .text localhost:3000
 add work_dir   .text .run/portal
-add node_title .text Portal Host 
+add node_title .text Static Files Host 
 ```
 
 ``` app app_host
-add address .text localhost:3005
+add address     .text   localhost:3005
+add node_title  .text   App Host
 ```
