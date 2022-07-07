@@ -69,34 +69,19 @@ fn create_runtime(project: Project) -> Runtime {
     runtime.install::<Call, StaticFiles>();
     runtime.install::<Call, MakeElm>();
     runtime.install::<Call, Lab>();
-    //
+  
     runtime.add_config(Config("cloud_init", |tc| {
-        tc.as_mut()
-            .with_text("tool_name", "cloud_init")
-            .with_text("ext", "yml")
-            .with_text("work_dir", ".config/cloud_init")
-            .with_text("node_title", "Install cloud_init parts")
-            .add_text_attr("src_dir", "lib");
+        cloud_init::env(tc);
     }));
 
     runtime.add_config(Config("cloud_init_exit", |tc| {
-        tc.as_mut()
-            .with_text("tool_name", "cloud_init")
-            .with_text("ext", "yml")
-            .with_text("work_dir", ".config/cloud_init")
-            .with_text("node_title", "Install cloud_init exit")
-            .with_text("src_dir", "lib")
-            .add_text_attr("src_type", "exit");
+        tc.as_mut().add_text_attr("src_type", "exit");
+        cloud_init::env(tc);
     }));
 
-    runtime.add_config(Config("cloud_init_enter", |tc| {
-        tc.as_mut()
-            .with_text("tool_name", "cloud_init")
-            .with_text("ext", "yml")
-            .with_text("work_dir", ".config/cloud_init")
-            .with_text("node_title", "Install cloud_init enter")
-            .with_text("src_dir", "lib")
-            .add_text_attr("src_type", "enter");
+    runtime.add_config(Config("cloud_init_enter", |tc| {        
+        tc.as_mut().add_text_attr("src_type", "enter");
+        cloud_init::env(tc);
     }));
 
     runtime.add_config(Config("elm_portal", |tc| {
