@@ -1,25 +1,36 @@
 # Defining dev box runtime
-``` dev_box runtime
-define setup_enter call
-define setup_exit  call
-define setup       call
+- Defining `default call` in the .runmd file allows the runtime to load when the directory is dropped into the editor.
+``` default call
+define dev_box lab  .symbol default
+``` lab 
+add node_title      .text Devbox Runtime
+add project_src     .text design/devbox/.runmd
+```
+
+``` dev_box lab
+define setup_enter call .symbol setup_exit
+define setup_exit  call .symbol setup
+define setup       call .symbol host
 define host        call
 ```
 
 # Setup environment
 ``` setup_enter call
-define azure   install    .text   cloud_init_enter
+add    node_title     .text Setup cloud_init enter
+define azure install  .text cloud_init_enter
 ```
 
 ``` setup_exit call
-define azure install    .text   cloud_init_exit
+add    node_title     .text Setup cloud_init exit
+define azure install  .text cloud_init_exit
 ```
 
 # Setup dev box
-``` setup call 
-define azcli   install    .text   cloud_init
-define golang  install    .text   cloud_init 
-define docker  install    .text   cloud_init
+``` setup call
+add node_title .text Setup dev box
+define azcli    install    .text   cloud_init
+define golang   install    .text   cloud_init 
+define docker   install    .text   cloud_init
 ```
 
 # (TODO) Host dev box

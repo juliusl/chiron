@@ -22,6 +22,9 @@ use host::Host;
 mod elm;
 use elm::MakeElm;
 
+mod lab;
+use lab::Lab;
+
 fn main() {
     if let Some(project) = Project::runmd() {
         let mut runtime = Runtime::new(project.clone());
@@ -33,8 +36,10 @@ fn main() {
         runtime.install::<Call, MakeMime>();
         runtime.install::<Call, ReadMime>();
         runtime.install::<Call, StaticFiles>();
-        runtime.install::<Call, AppHost<Empty>>();
         runtime.install::<Call, MakeElm>();
+        runtime.install::<Call, AppHost<Empty>>();
+        runtime.install::<Call, Lab>();
+        runtime.install::<Call, Runtime>();
 
         runtime.add_config(Config("cloud_init", |tc|{ 
             tc.as_mut()

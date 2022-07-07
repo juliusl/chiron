@@ -1,7 +1,11 @@
-use imgui::{Window, MenuItem};
-use lifec::{*, editor::{RuntimeEditor, Call, WindowEvent}};
+use imgui::{MenuItem, Window};
+use lifec::{
+    editor::{Call, RuntimeEditor, WindowEvent},
+    plugins::ThunkContext,
+    *,
+};
 
-pub struct Host(RuntimeEditor, bool);
+pub struct Host(pub RuntimeEditor, pub bool);
 
 impl From<Runtime> for Host {
     fn from(runtime: Runtime) -> Self {
@@ -18,14 +22,27 @@ impl AsRef<Runtime> for Host {
 impl Host {
     /// Creates a new host engine group
     fn create_host(&self, app_world: &World) -> Vec<Entity> {
-        self.0.runtime().create_engine_group::<Call>(app_world, vec![
-            "host",
-            "setup",
-            "setup_enter",
-            "setup_exit"
-        ]
-        .iter()
-        .map(|s| s.to_string()).collect())
+        self.0.runtime().create_engine_group::<Call>(
+            app_world,
+            vec!["host", "setup", "setup_enter", "setup_exit"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+        )
+    }
+
+    /// Creates the engine from a dropped_dir path
+    fn create_default(
+        &self,
+        app_world: &World,
+    ) -> Option<Entity> {
+        self.0.runtime().create_engine_group::<Call>(
+            app_world,
+            vec!["default"]
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
+        ).get(0).and_then(|e| Some(*e))
     }
 }
 
@@ -42,9 +59,9 @@ impl Extension for Host {
         Window::new("Chiron Tools")
             .menu_bar(true)
             .size([800.0, 600.0], imgui::Condition::Appearing)
-            .build(ui, ||{
+            .build(ui, || {
                 ui.menu_bar(|| {
-                    ui.menu("Actions", ||{
+                    ui.menu("Actions", || {
                         if MenuItem::new("Create host").build(ui) {
                             self.create_host(app_world);
                         }
@@ -56,11 +73,23 @@ impl Extension for Host {
     }
 
     fn on_window_event(&'_ mut self, app_world: &World, event: &'_ lifec::editor::WindowEvent<'_>) {
+        self.0.on_window_event(app_world, event);
         match event {
-            WindowEvent::DroppedFile(path) => {
-                if "runmd" == path.extension().unwrap_or_default() {
+            WindowEvent::DroppedFile(dropped_path) => {
+                if dropped_path.is_dir() {
+                    let path = dropped_path.join(".runmd");
+                    if path.exists() {
+                        if let Some(file) = AttributeGraph::load_from_file(
+                            format!("{:?}", path).trim_matches('"'),
+                        ) {
+                            *self.0.project_mut().as_mut() = file;
+                            *self.0.project_mut() = self.0.project_mut().reload_source();
+                            self.create_default(app_world);
+                        }
+                    }
+                } else if "runmd" == dropped_path.extension().unwrap_or_default() {
                     if let Some(file) =
-                        AttributeGraph::load_from_file(path.to_str().unwrap_or_default())
+                        AttributeGraph::load_from_file(dropped_path.to_str().unwrap_or_default())
                     {
                         *self.0.project_mut().as_mut() = file;
                         *self.0.project_mut() = self.0.project_mut().reload_source();
@@ -70,8 +99,6 @@ impl Extension for Host {
             }
             _ => {}
         }
-
-        self.0.on_window_event(app_world, event)
     }
 
     fn on_run(&'_ mut self, app_world: &World) {
