@@ -1251,7 +1251,7 @@ dependencies = [
 [[package]]
 name = "lifec"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec.git?branch=main#b1c3cdd289d3b0177cf26014f2a5ea3e26b5ed8c"
+source = "git+https://github.com/juliusl/lifec.git?branch=main#e5cc524c135c2fd65abe0d5863fb2c122c1bbc2b"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git)",
  "base64 0.13.0",
@@ -1271,7 +1271,7 @@ dependencies = [
 [[package]]
 name = "lifec_poem"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec_poem.git?branch=main#58e99d76eb7351a0f1f67598c39a724d5c808488"
+source = "git+https://github.com/juliusl/lifec_poem.git?branch=main#610ad265d504cbef879cf12451dfcf785aba56ee"
 dependencies = [
  "lifec",
  "poem",
