@@ -20,7 +20,10 @@ impl AsRef<Runtime> for Host {
 
 impl Host {
     /// Creates a new host engine group
-    fn create_host(&self, app_world: &World) -> Vec<Entity> {
+    fn create_host(
+        &self, 
+        app_world: &World
+    ) -> Vec<Entity> {
         self.0.runtime().create_engine_group::<Call>(
             app_world,
             vec!["host", "setup", "setup_enter", "setup_exit"]
@@ -74,25 +77,25 @@ impl Extension for Host {
     fn on_window_event(&'_ mut self, app_world: &World, event: &'_ lifec::editor::WindowEvent<'_>) {
         self.0.on_window_event(app_world, event);
         match event {
-            WindowEvent::DroppedFile(dropped_path) => {
-                if dropped_path.is_dir() {
-                    let path = dropped_path.join(".runmd");
+            WindowEvent::DroppedFile(dropped_file_path) => {
+                if dropped_file_path.is_dir() {
+                    let path = dropped_file_path.join(".runmd");
                     if path.exists() {
                         if let Some(file) = AttributeGraph::load_from_file(
                             format!("{:?}", path).trim_matches('"'),
                         ) {
                             *self.0.project_mut().as_mut() = file;
                             *self.0.project_mut() = self.0.project_mut().reload_source();
-                            self.create_default(app_world);
+                             self.create_default(app_world);
                         }
                     }
-                } else if "runmd" == dropped_path.extension().unwrap_or_default() {
+                } else if "runmd" == dropped_file_path.extension().unwrap_or_default() {
                     if let Some(file) =
-                        AttributeGraph::load_from_file(dropped_path.to_str().unwrap_or_default())
+                        AttributeGraph::load_from_file(dropped_file_path.to_str().unwrap_or_default())
                     {
                         *self.0.project_mut().as_mut() = file;
                         *self.0.project_mut() = self.0.project_mut().reload_source();
-                        self.1 = true;
+                         self.create_host(app_world);
                     }
                 }
             }
@@ -107,7 +110,6 @@ impl Extension for Host {
     fn on_maintain(&'_ mut self, app_world: &mut World) {
         if self.1 {
             app_world.delete_all();
-            self.create_host(app_world);
             self.1 = false;
         }
     }

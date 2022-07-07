@@ -1251,7 +1251,7 @@ dependencies = [
 [[package]]
 name = "lifec"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec.git?branch=main#7289ccc6f10b357f74f810bf8fa69ebd8ecd021d"
+source = "git+https://github.com/juliusl/lifec.git?branch=main#b32469bee1a8e4871671836f466d442038ba69cb"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git)",
  "base64 0.13.0",
@@ -2297,7 +2297,7 @@ dependencies = [
 [[package]]
 name = "shinsu"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/shinsu.git?branch=main#93b4294c169a5d961065dd38bddf40851cdff029"
+source = "git+https://github.com/juliusl/shinsu.git?branch=main#97804c52b0a6984be41976dddb6a340ef8284f7f"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git?branch=main)",
  "imgui",
