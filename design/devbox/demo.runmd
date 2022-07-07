@@ -8,18 +8,18 @@ define host        call
 
 # Setup environment
 ``` setup_enter call
-define azure   install    .text   cloud_init_enter
+define azure    install    .text   cloud_init_enter
 ```
 
 ``` setup_exit call
-define azure install    .text   cloud_init_exit
+define azure    install    .text   cloud_init_exit
 ```
 
 # Setup dev box
 ``` setup call 
-define azcli   install    .text   cloud_init
-define golang  install    .text   cloud_init 
-define docker  install    .text   cloud_init
+define azcli    install    .text   cloud_init
+define golang   install    .text   cloud_init 
+define docker   install    .text   cloud_init
 ```
 
 # (TODO) Host dev box
