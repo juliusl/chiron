@@ -1,6 +1,6 @@
 use imgui::Window;
 use lifec::{
-    plugins::{Project, OpenFile, WriteFile, Process, Timer, Config}, 
+    plugins::{Project, OpenFile, WriteFile, Process, Timer, Config, Println}, 
     editor::Call,
 };
 use lifec_poem::{StaticFiles, WebApp, AppHost};
@@ -35,6 +35,7 @@ fn main() {
         runtime.install::<Call, Install>();
         runtime.install::<Call, MakeMime>();
         runtime.install::<Call, ReadMime>();
+        runtime.install::<Call, Println>();
         runtime.install::<Call, StaticFiles>();
         runtime.install::<Call, MakeElm>();
         runtime.install::<Call, AppHost<Empty>>();
