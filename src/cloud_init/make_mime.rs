@@ -60,7 +60,8 @@ impl MakeMime {
         let mut nodes = vec![];
 
         for node in parts {
-            if let Some((file_name, mime_type)) = node.split_once(":") {
+            // ex. define azcli part .text install-azcli.yml_jinja2
+            if let Some((file_name, mime_type)) = node.split_once("_") {
                 let file_path = PathBuf::from(work_dir.as_ref()).join(file_name);
 
                 match tokio::fs::read_to_string(&file_path).await {
