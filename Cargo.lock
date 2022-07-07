@@ -1041,9 +1041,9 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.14.19"
+version = "0.14.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "42dc3c131584288d375f2d07f822b0cb012d8c6fb899a5b9fdb3cb7eb9b6004f"
+checksum = "02c929dc5c39e335a03c405292728118860721b10190d98c2a0f0efd5baafbac"
 dependencies = [
  "bytes",
  "futures-channel",
@@ -1271,7 +1271,7 @@ dependencies = [
 [[package]]
 name = "lifec_poem"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec_poem.git?branch=main#610ad265d504cbef879cf12451dfcf785aba56ee"
+source = "git+https://github.com/juliusl/lifec_poem.git?branch=main#a5523c5e522826d1d9002fd088f49c6d4141d2e4"
 dependencies = [
  "lifec",
  "poem",
@@ -1821,7 +1821,7 @@ dependencies = [
  "headers",
  "http",
  "httpdate",
- "hyper 0.14.19",
+ "hyper 0.14.20",
  "mime 0.3.16",
  "mime_guess",
  "parking_lot 0.12.1",

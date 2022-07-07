@@ -25,5 +25,6 @@ add file_src   .text lib/elm/portal/index.html
 ``` main static_files
 add address    .text localhost:3000
 add work_dir   .text .run/portal
+add index_html .text index.html
 add node_title .text Static Files Host 
 ```

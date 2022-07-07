@@ -34,6 +34,8 @@ impl Plugin<ThunkContext> for Install {
                     return combine::<OpenFile, WriteFile>()(context);
                 }
             }
+        } else if let Some(_) = context.as_ref().find_text("file_src") {
+            return combine::<OpenFile, WriteFile>()(context);
         }
 
         eprintln!("install skipped");
