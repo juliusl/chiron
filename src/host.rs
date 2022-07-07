@@ -74,13 +74,17 @@ impl Extension for Host {
     fn on_maintain(&'_ mut self, app_world: &mut World) {
         if self.1 {
             app_world.delete_all();
-            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "host".to_string()) {
-                    app_world.write_component::<Connection>()
-                        .insert(first, Connection::default()).ok();
+            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "host".to_string()) {
+                 
             }
-            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup".to_string()) {
-                app_world.write_component::<Connection>()
-                    .insert(first, Connection::default()).ok();
+            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "setup".to_string()) {
+             
+            }
+            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "setup_enter".to_string()) {
+             
+            }
+            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "setup_exit".to_string()) {
+             
             }
             self.1 = false;
         }

@@ -1,4 +1,4 @@
-use lifec::{plugins::{ThunkContext, Plugin, OpenFile}, Component, DenseVecStorage};
+use lifec::{plugins::{ThunkContext, Plugin, OpenFile, WriteFile, combine}, Component, DenseVecStorage};
 
 /// Opens a cloud_init config part into storage
 #[derive(Component, Default)]
@@ -19,11 +19,11 @@ impl Plugin<ThunkContext> for Install {
         
         if let Some(src_dir) = context.as_ref().find_text("src_dir") {
             let src_type = context.as_ref().find_text("src_type").unwrap_or("install".to_string());
-            let file_src = format!("{}/cloud_init/{}-{}.yml", src_dir, src_type, block_name);
+            let file_src = format!("{src_dir}/cloud_init/{src_type}-{block_name}.yml");
             context.as_mut()
                 .add_text_attr("file_src", file_src);
             
-            OpenFile::call_with_context(context)
+            combine::<OpenFile, WriteFile>()(context)
         } else {
             None 
         }

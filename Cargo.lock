@@ -76,7 +76,7 @@ dependencies = [
 [[package]]
 name = "atlier"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/atlier.git?branch=main#de096599ef183a6581dcd03b7ed28d72f2ee0d36"
+source = "git+https://github.com/juliusl/atlier.git?branch=main#a9b19657305de5176baca6c906c9813d89cb7310"
 dependencies = [
  "base64 0.13.0",
  "futures",
@@ -92,7 +92,7 @@ dependencies = [
 [[package]]
 name = "atlier"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/atlier.git#de096599ef183a6581dcd03b7ed28d72f2ee0d36"
+source = "git+https://github.com/juliusl/atlier.git#a9b19657305de5176baca6c906c9813d89cb7310"
 dependencies = [
  "base64 0.13.0",
  "futures",
@@ -1251,7 +1251,7 @@ dependencies = [
 [[package]]
 name = "lifec"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec.git?branch=main#94e19b2fafad74bb1a141ae9876e2c95951a88e4"
+source = "git+https://github.com/juliusl/lifec.git?branch=main#67793628d7911f1c50960029577b4735e27edd18"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git)",
  "base64 0.13.0",

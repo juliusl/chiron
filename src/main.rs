@@ -39,19 +39,26 @@ fn main() {
         runtime.install::<Call, MakeElm>();
 
         runtime.add_config(Config("cloud_init", |tc|{ 
-            tc.as_mut().add_text_attr("src_dir", "lib");
+            tc.as_mut()
+                .with_text("work_dir", ".config/cloud_init")
+                .with_text("node_title", "Install cloud_init parts")
+                .add_text_attr("src_dir", "lib");
         }));
 
         runtime.add_config(Config("cloud_init_exit", |tc|{ 
             tc.as_mut()
-                .with_text("src_type", "exit")
-                .add_text_attr("src_dir", "lib");
+                .with_text("work_dir", ".config/cloud_init")
+                .with_text("node_title", "Install cloud_init exit")
+                .with_text("src_dir", "lib")
+                .add_text_attr("src_type", "exit");
         }));
 
         runtime.add_config(Config("cloud_init_enter", |tc|{ 
             tc.as_mut()
-                .with_text("src_type", "enter")
-                .add_text_attr("src_dir", "lib");
+                .with_text("work_dir", ".config/cloud_init")
+                .with_text("node_title", "Install cloud_init enter")
+                .with_text("src_dir", "lib")
+                .add_text_attr("src_type", "enter");
         }));
 
         runtime.add_config(Config("elm_portal", |tc| {
