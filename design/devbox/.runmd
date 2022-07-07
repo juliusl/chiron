@@ -14,7 +14,8 @@ define setup       call .symbol host
 define host        call
 ```
 
-# Setup environment
+# Setup environment (Azure)
+- This is setup for cloud_init hosted on azure
 ``` setup_enter call
 add    node_title     .text Setup cloud_init enter
 define azure install  .text cloud_init_enter
@@ -26,8 +27,9 @@ define azure install  .text cloud_init_exit
 ```
 
 # Setup dev box
+- This is setup for standard container development
 ``` setup call
-add     node_title     .text Setup dev box
+add    node_title      .text Setup dev box
 define azcli  install  .text cloud_init
 define golang install  .text cloud_init 
 define docker install  .text cloud_init
