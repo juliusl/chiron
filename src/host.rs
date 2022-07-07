@@ -1,5 +1,5 @@
 use imgui::{Window, MenuItem};
-use lifec::{*, editor::{RuntimeEditor, Call, WindowEvent}, plugins::Connection};
+use lifec::{*, editor::{RuntimeEditor, Call, WindowEvent}};
 
 pub struct Host(RuntimeEditor, bool);
 
@@ -12,6 +12,20 @@ impl From<Runtime> for Host {
 impl AsRef<Runtime> for Host {
     fn as_ref(&self) -> &Runtime {
         &self.0.runtime()
+    }
+}
+
+impl Host {
+    /// Creates a new host engine group
+    fn create_host(&self, app_world: &World) -> Vec<Entity> {
+        self.0.runtime().create_engine_group::<Call>(app_world, vec![
+            "host",
+            "setup",
+            "setup_enter",
+            "setup_exit"
+        ]
+        .iter()
+        .map(|s| s.to_string()).collect())
     }
 }
 
@@ -31,15 +45,8 @@ impl Extension for Host {
             .build(ui, ||{
                 ui.menu_bar(|| {
                     ui.menu("Actions", ||{
-                        if MenuItem::new("Create portal host").build(ui) {
-                            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "host".to_string()) {
-                                app_world.write_component::<Connection>()
-                                    .insert(first, Connection::default()).ok();
-                            }
-                            if let Some(first) = self.0.runtime().create_engine::<Call>(app_world, "setup".to_string()) {
-                                app_world.write_component::<Connection>()
-                                    .insert(first, Connection::default()).ok();
-                            }
+                        if MenuItem::new("Create host").build(ui) {
+                            self.create_host(app_world);
                         }
                     });
                 });
@@ -74,16 +81,7 @@ impl Extension for Host {
     fn on_maintain(&'_ mut self, app_world: &mut World) {
         if self.1 {
             app_world.delete_all();
-
-            self.0.runtime().create_engine_group::<Call>(app_world, vec![
-                "host",
-                "setup",
-                "setup_enter",
-                "setup_exit"
-            ]
-            .iter()
-            .map(|s| s.to_string()).collect());
-
+            self.create_host(app_world);
             self.1 = false;
         }
     }
