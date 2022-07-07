@@ -27,10 +27,10 @@ define azure install  .text cloud_init_exit
 
 # Setup dev box
 ``` setup call
-add node_title .text Setup dev box
-define azcli    install    .text   cloud_init
-define golang   install    .text   cloud_init 
-define docker   install    .text   cloud_init
+add     node_title     .text Setup dev box
+define azcli  install  .text cloud_init
+define golang install  .text cloud_init 
+define docker install  .text cloud_init
 ```
 
 # (TODO) Host dev box
