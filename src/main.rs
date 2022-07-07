@@ -1,10 +1,10 @@
 use imgui::Window;
 use lifec::{
-    plugins::{Project, OpenFile, WriteFile, Process, Timer, Config, Println}, 
+    plugins::{Project, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote}, 
     editor::Call,
 };
-use lifec_poem::{StaticFiles, WebApp, AppHost};
 use lifec::*;
+use lifec_poem::{StaticFiles, WebApp};
 use poem::{handler, web::Path, Route, get};
 use shinsu::NodeEditor;
 use std::env;
@@ -27,56 +27,8 @@ use lab::Lab;
 
 fn main() {
     if let Some(project) = Project::runmd() {
-        let mut runtime = Runtime::new(project.clone());
-        runtime.install::<Call, Timer>();
-        runtime.install::<Call, Process>();
-        runtime.install::<Call, OpenFile>();
-        runtime.install::<Call, WriteFile>();
-        runtime.install::<Call, Install>();
-        runtime.install::<Call, MakeMime>();
-        runtime.install::<Call, ReadMime>();
-        runtime.install::<Call, Println>();
-        runtime.install::<Call, StaticFiles>();
-        runtime.install::<Call, MakeElm>();
-        runtime.install::<Call, AppHost<Empty>>();
-        runtime.install::<Call, Lab>();
-        runtime.install::<Call, Runtime>();
-
-        runtime.add_config(Config("cloud_init", |tc|{ 
-            tc.as_mut()
-                .with_text("tool_name", "cloud_init")
-                .with_text("ext", "yml")
-                .with_text("work_dir", ".config/cloud_init")
-                .with_text("node_title", "Install cloud_init parts")
-                .add_text_attr("src_dir", "lib");
-        }));
-
-        runtime.add_config(Config("cloud_init_exit", |tc|{ 
-            tc.as_mut()
-                .with_text("tool_name", "cloud_init")
-                .with_text("ext", "yml")
-                .with_text("work_dir", ".config/cloud_init")
-                .with_text("node_title", "Install cloud_init exit")
-                .with_text("src_dir", "lib")
-                .add_text_attr("src_type", "exit");
-        }));
-
-        runtime.add_config(Config("cloud_init_enter", |tc|{ 
-            tc.as_mut()
-                .with_text("tool_name", "cloud_init")
-                .with_text("ext", "yml")
-                .with_text("work_dir", ".config/cloud_init")
-                .with_text("node_title", "Install cloud_init enter")
-                .with_text("src_dir", "lib")
-                .add_text_attr("src_type", "enter");
-        }));
-
-        runtime.add_config(Config("elm_portal", |tc| {
-            tc.as_mut()
-                .with_text("elm_src", "lib/elm/portal/src/Main.elm")
-                .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
-        }));
-
+        let runtime = create_runtime(project);
+      
         let args: Vec<String> = env::args().collect();
         
         if let Some(arg) = args.get(1) {
@@ -96,6 +48,64 @@ fn main() {
             ))
         }
     }
+}
+
+fn create_runtime(project: Project) -> Runtime {
+    let mut runtime = Runtime::new(project);
+    runtime.install::<Call, WriteFile>();
+    runtime.install::<Call, OpenFile>();
+    runtime.install::<Call, Runtime>();
+    runtime.install::<Call, OpenDir>();
+    runtime.install::<Call, Process>();
+    runtime.install::<Call, Remote>();
+    runtime.install::<Call, Println>();
+    runtime.install::<Call, Timer>();
+    // Installs a tool
+    runtime.install::<Call, Install>();
+    // Cloud-init tools
+    runtime.install::<Call, MakeMime>();
+    runtime.install::<Call, ReadMime>();
+    // Hosting code
+    runtime.install::<Call, StaticFiles>();
+    runtime.install::<Call, MakeElm>();
+    runtime.install::<Call, Lab>();
+    //
+    runtime.add_config(Config("cloud_init", |tc| {
+        tc.as_mut()
+            .with_text("tool_name", "cloud_init")
+            .with_text("ext", "yml")
+            .with_text("work_dir", ".config/cloud_init")
+            .with_text("node_title", "Install cloud_init parts")
+            .add_text_attr("src_dir", "lib");
+    }));
+
+    runtime.add_config(Config("cloud_init_exit", |tc| {
+        tc.as_mut()
+            .with_text("tool_name", "cloud_init")
+            .with_text("ext", "yml")
+            .with_text("work_dir", ".config/cloud_init")
+            .with_text("node_title", "Install cloud_init exit")
+            .with_text("src_dir", "lib")
+            .add_text_attr("src_type", "exit");
+    }));
+
+    runtime.add_config(Config("cloud_init_enter", |tc| {
+        tc.as_mut()
+            .with_text("tool_name", "cloud_init")
+            .with_text("ext", "yml")
+            .with_text("work_dir", ".config/cloud_init")
+            .with_text("node_title", "Install cloud_init enter")
+            .with_text("src_dir", "lib")
+            .add_text_attr("src_type", "enter");
+    }));
+
+    runtime.add_config(Config("elm_portal", |tc| {
+        tc.as_mut()
+            .with_text("elm_src", "lib/elm/portal/src/Main.elm")
+            .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
+    }));
+
+    runtime
 }
 
 struct Main(Host, NodeEditor); 
