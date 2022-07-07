@@ -1,7 +1,6 @@
 use imgui::{MenuItem, Window};
 use lifec::{
     editor::{Call, RuntimeEditor, WindowEvent},
-    plugins::ThunkContext,
     *,
 };
 

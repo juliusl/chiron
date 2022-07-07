@@ -1,7 +1,7 @@
 use lifec::{plugins::{Plugin, ThunkContext, Project, WriteFile, OpenFile, OpenDir, Process, Remote, Timer, Config}, Runtime, editor::{Call, RuntimeEditor}};
 use lifec_poem::StaticFiles;
 
-use crate::{install::Install, cloud_init::{MakeMime, ReadMime}, elm::MakeElm, Main, host::Host};
+use crate::{install::Install, cloud_init::{MakeMime, ReadMime}, elm::MakeElm, host::Host};
 
 /// Lab component hosts a runtime
 #[derive(Default)]
