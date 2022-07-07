@@ -10,8 +10,11 @@ use shinsu::NodeEditor;
 use std::env;
 
 mod cloud_init;
-use cloud_init::{MakeMime, Install};
+use cloud_init::MakeMime;
 use cloud_init::ReadMime;
+
+mod install;
+use install::Install;
 
 mod host;
 use host::Host;
@@ -35,6 +38,8 @@ fn main() {
 
         runtime.add_config(Config("cloud_init", |tc|{ 
             tc.as_mut()
+                .with_text("tool_name", "cloud_init")
+                .with_text("ext", "yml")
                 .with_text("work_dir", ".config/cloud_init")
                 .with_text("node_title", "Install cloud_init parts")
                 .add_text_attr("src_dir", "lib");
@@ -42,6 +47,8 @@ fn main() {
 
         runtime.add_config(Config("cloud_init_exit", |tc|{ 
             tc.as_mut()
+                .with_text("tool_name", "cloud_init")
+                .with_text("ext", "yml")
                 .with_text("work_dir", ".config/cloud_init")
                 .with_text("node_title", "Install cloud_init exit")
                 .with_text("src_dir", "lib")
@@ -50,6 +57,8 @@ fn main() {
 
         runtime.add_config(Config("cloud_init_enter", |tc|{ 
             tc.as_mut()
+                .with_text("tool_name", "cloud_init")
+                .with_text("ext", "yml")
                 .with_text("work_dir", ".config/cloud_init")
                 .with_text("node_title", "Install cloud_init enter")
                 .with_text("src_dir", "lib")

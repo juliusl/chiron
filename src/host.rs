@@ -74,18 +74,16 @@ impl Extension for Host {
     fn on_maintain(&'_ mut self, app_world: &mut World) {
         if self.1 {
             app_world.delete_all();
-            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "host".to_string()) {
-                 
-            }
-            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "setup".to_string()) {
-             
-            }
-            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "setup_enter".to_string()) {
-             
-            }
-            if let Some(_) = self.0.runtime().create_engine::<Call>(app_world, "setup_exit".to_string()) {
-             
-            }
+
+            self.0.runtime().create_engine_group::<Call>(app_world, vec![
+                "host",
+                "setup",
+                "setup_enter",
+                "setup_exit"
+            ]
+            .iter()
+            .map(|s| s.to_string()).collect());
+
             self.1 = false;
         }
     }
