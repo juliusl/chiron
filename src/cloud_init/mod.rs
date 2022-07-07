@@ -1,5 +1,5 @@
 mod make_mime;
-use lifec::{AttributeGraph, plugins::ThunkContext};
+use lifec::plugins::ThunkContext;
 pub use make_mime::MakeMime;
 
 mod read_mime;

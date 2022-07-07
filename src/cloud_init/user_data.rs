@@ -7,7 +7,7 @@ impl Plugin<ThunkContext> for UserData {
         "user_data"
     }
 
-    fn call_with_context(context: &mut ThunkContext) -> Option<lifec::plugins::AsyncContext> {
+    fn call_with_context(_context: &mut ThunkContext) -> Option<lifec::plugins::AsyncContext> {
         todo!()
     }
 }
