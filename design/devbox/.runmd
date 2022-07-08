@@ -12,7 +12,8 @@ add project_src     .text design/devbox/.runmd
 add    node_title       .text   Dev box setup
 define setup_enter call .symbol setup_exit
 define setup_exit  call .symbol setup
-define setup       call
+define setup       call .symbol host
+define host        call  
 ```
 
 # Example of setting up user_data
@@ -65,9 +66,33 @@ define overlaybd                   install .text cloud_init
 define rustlang                    install .text cloud_init
 ```
 
-# (TODO) Host dev box
+# Host lab runtime
 ``` host call
+define a_        println  .symbol dev_box
+define a_dev_box install  .symbol html
+define b_dev_box install  .symbol script
+define c_dev_box install  .symbol design
+define dev_box   app_host .symbol dev_box
 ```
 
 ``` dev_box app_host
+add address     .text localhost:3000
+add work_dir    .text .run/dev_box/
+add index_html  .text index.html
+``` println
+```
+
+``` design install
+add work_dir   .text .run/dev_box
+add file_src   .text design/devbox/.runmd
+```
+
+``` html install
+add work_dir    .text .run/dev_box
+add file_src    .text lib/elm/portal/index.html
+```
+
+``` script install
+add work_dir    .text  .run/dev_box
+add file_src    .text  lib/elm/portal/elm.js
 ```

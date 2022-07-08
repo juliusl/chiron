@@ -1,4 +1,4 @@
-module Instructions exposing (viewInstructions)
+module Instructions exposing (viewInstructions, viewInstructionsFullPage)
 
 import Element exposing (..)
 import Element.Input
@@ -18,6 +18,13 @@ viewInstructions onNext onDone markdown =
         Err err ->
             Element.text err
 
+viewInstructionsFullPage :  String -> Element msg
+viewInstructionsFullPage markdown = 
+ case Markdown.viewMarkdown markdown of
+        Ok rendered ->
+            Element.column [ spacing 20 ] rendered
+        Err err ->
+            Element.text err
 
 viewButton : (List String -> Maybe msg) -> msg -> List String -> Element msg
 viewButton onNext onDone remaining =

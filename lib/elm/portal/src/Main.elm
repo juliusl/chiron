@@ -5,9 +5,9 @@ import Editor
 import Element exposing (..)
 import Element.Input
 import Html exposing (..)
+import Http
 import Instructions
 import Layout
-import Markdown
 
 
 main =
@@ -38,17 +38,15 @@ type Msg
     | Dispatch String
     | Save String
     | Instructions String
+    | GotLab (Result Http.Error String)
     | Done
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, Cmd.none )
-
-
+    ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, getLab )
 
 -- UPDATE
-
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
@@ -71,6 +69,13 @@ update msg model =
 
         Done ->
             ( { model | instructions = model.editor.text }, Cmd.none )
+        
+        GotLab result -> 
+            case result of 
+                Ok lab -> 
+                    ({ model | editor = { editor | text = lab }, instructions = lab }, Cmd.none )
+                Err _ -> 
+                    (model, Cmd.none)
 
 
 
@@ -101,14 +106,19 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Chiron Portal"
     , body =
-        [ Layout.view
-            { title = "Editor"
-            , content = viewCodeEditor { enableMonaco = True, model = model }
-            , detail = Instructions.viewInstructions onNext Done model.instructions
+        [ 
+            -- Layout.view
+            -- { title = "Editor"
+            -- , content = viewCodeEditor { enableMonaco = True, model = model }
+            -- , detail = Instructions.viewInstructions onNext Done model.instructions
+            -- },
+            Layout.view
+            { title = "Instructions"
+            , content = Instructions.viewInstructionsFullPage model.instructions
+            , detail = Element.text ""
             }
         ]
     }
-
 
 onNext : List String -> Maybe Msg
 onNext remaining =
@@ -168,3 +178,11 @@ tools:
   - ssh-keygen
 ```
 """
+
+-- TODO hardcoded url for now
+getLab : Cmd Msg
+getLab = 
+    Http.get 
+    { url = "/lab/dev_box"
+    , expect = Http.expectString GotLab
+    }
