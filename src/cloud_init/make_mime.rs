@@ -1,11 +1,14 @@
-use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf};
 use hyper::{
     header::{ContentDisposition, ContentType, DispositionParam, DispositionType, Headers},
     mime::{Attr, Mime, SubLevel, TopLevel, Value},
 };
-use lifec::{plugins::{Plugin, ThunkContext}, Component, DenseVecStorage};
+use lifec::{
+    plugins::{Plugin, ThunkContext},
+    Component, DenseVecStorage,
+};
 use mime_multipart::{generate_boundary, write_multipart, Node, Part};
 use phf::phf_map;
+use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf};
 use tokio::io::{self, AsyncWriteExt};
 
 #[derive(Component, Default)]
@@ -27,20 +30,32 @@ impl Plugin<ThunkContext> for MakeMime {
             async move {
                 if let Some(work_dir) = tc.as_ref().find_text("work_dir") {
                     if let Some(file_dst) = tc.as_ref().find_text("file_dst") {
-                        if let Some(output_file) = tokio::fs::File::open(file_dst).await.ok() {
-                            let mut parts = vec![];
-                            for (_, part_value) in tc.as_ref().find_symbol_values("part") {
-                                if let lifec::Value::TextBuffer(part_value) = part_value {
-                                    parts.push(part_value);
-                                }
-                            }
+                        tokio::fs::create_dir_all(PathBuf::from(&file_dst).parent().expect("couldn't create dirs")).await.ok();
 
-                            match Self::make_mime(parts, work_dir, output_file).await {
-                                Ok(_) => {}
-                                Err(err) => {
-                                    eprintln!("error: {}", err);
+                        match tokio::fs::OpenOptions::new()
+                            .write(true)
+                            .create(true)
+                            .open(file_dst)
+                            .await
+                        {
+                            Ok(file) => {
+                                let mut parts = vec![];
+                                for (_, part_value) in tc.as_ref().find_symbol_values("part") {
+                                    if let lifec::Value::TextBuffer(part_value) = part_value {
+                                        parts.push(part_value);
+                                    }
+                                }
+
+                                match Self::make_mime(parts, work_dir, file).await {
+                                    Ok(_) => {}
+                                    Err(err) => {
+                                        eprintln!("error: {}", err);
+                                    }
                                 }
                             }
+                            Err(err) => {
+                                eprintln!("{err}");
+                            },
                         }
                     }
                 }
@@ -63,6 +78,8 @@ impl MakeMime {
             // ex. define azcli part .text install-azcli.yml_jinja2
             if let Some((file_name, mime_type)) = node.split_once("_") {
                 let file_path = PathBuf::from(work_dir.as_ref()).join(file_name);
+
+                eprintln!("adding part from path {:?}", file_path);
 
                 match tokio::fs::read_to_string(&file_path).await {
                     Ok(body) => match CLOUD_INIT_MIME_TYPES[mime_type].parse::<Mime>() {
