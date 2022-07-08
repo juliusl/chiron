@@ -1,9 +1,10 @@
 # Defining dev box runtime
 - Defining `default call` in the `.runmd` file allows the runtime to load when the directory is dropped into the editor.
 ``` default call
-define dev_box lab       .symbol default
+define dev_box lab  .symbol default
 ``` lab
-add node_title      .text Devbox Runtime
+add node_title      .text Setup devbox Runtime
+add description     .text Sets up local environment for building dev boxes
 add project_src     .text design/devbox/.runmd
 ```
 
