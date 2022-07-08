@@ -12,6 +12,7 @@ import Markdown.Block as Block exposing (ListItem(..), Task(..))
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer exposing (..)
+import Markdown.Block exposing (headingLevelToInt)
 
 
 viewMarkdown : String -> Result String (List (Element msg))
@@ -44,7 +45,7 @@ defaultRenderer =
     , emphasis = \content -> Element.row [ Font.italic ] content
     , strikethrough = \content -> Element.row [ Font.strike ] content
     , link =
-        \{ title, destination } body ->
+        \{ destination } body ->
             Element.newTabLink
                 [ Element.htmlAttribute (Html.Attributes.style "display" "inline-flex") ]
                 { url = destination
@@ -58,7 +59,7 @@ defaultRenderer =
     , image =
         \image ->
             case image.title of
-                Just title ->
+                Just _ ->
                     Element.image [ Element.width Element.fill ] { src = image.src, description = image.alt }
 
                 Nothing ->
@@ -74,7 +75,10 @@ defaultRenderer =
                 children
     , unorderedList =
         \items ->
-            Element.column [ Element.spacing 15 ]
+            Element.column 
+                [ Element.spacing 15 
+                , Font.size 16
+                ]
                 (items
                     |> List.map
                         (\(ListItem task children) ->
@@ -190,32 +194,50 @@ parseCodeBlock details =
 heading : { level : Block.HeadingLevel, rawText : String, children : List (Element msg) } -> Element msg
 heading { level, rawText, children } =
     Element.paragraph
-        [ Font.size
-            (case level of
-                Block.H1 ->
-                    28
-
-                Block.H2 ->
-                    28
-
-                _ ->
-                    14
-            )
-        , Font.bold
-        , Font.family [ Font.typeface "Montserrat" ]
-        , Region.heading (Block.headingLevelToInt level)
-        , Element.htmlAttribute
-            (Html.Attributes.attribute "name" (rawTextToId rawText))
-        , Element.htmlAttribute
-            (Html.Attributes.id (rawTextToId rawText))
-        ]
+        (  case level of
+        Block.H1 -> 
+            h1 (headingLevelToInt level) rawText 
+        Block.H2 -> 
+            h2 (headingLevelToInt level) rawText 
+        _ -> 
+            [ Font.size 14
+            , Font.family [ Font.typeface "system-ui" ]
+            , Region.heading  (headingLevelToInt level)
+            , Element.htmlAttribute
+                (Html.Attributes.attribute "name" (rawTextToId rawText))
+            , Element.htmlAttribute
+                (Html.Attributes.id (rawTextToId rawText))
+            ])
         children
 
+h1 : Int -> String -> List (Attribute msg)
+h1 level rawText =
+    [ Font.size 20
+    , Font.bold
+    , Font.family [ Font.typeface "system-ui" ]
+    , Region.heading level
+    , Element.htmlAttribute
+        (Html.Attributes.attribute "name" (rawTextToId rawText))
+    , Element.htmlAttribute
+        (Html.Attributes.id (rawTextToId rawText))
+    ]
 
+h2 : Int -> String -> List (Attribute msg)
+h2 level rawText =
+    [ Font.size 20
+    , Font.underline
+    , Font.family [ Font.typeface "system-ui" ]
+    , Region.heading level
+    , Element.htmlAttribute
+        (Html.Attributes.attribute "name" (rawTextToId rawText))
+    , Element.htmlAttribute
+        (Html.Attributes.id (rawTextToId rawText))
+    ]
+
+
+rawTextToId : String -> String
 rawTextToId rawText =
     rawText
         |> String.split " "
-        |> Debug.log "split"
         |> String.join "-"
-        |> Debug.log "joined"
         |> String.toLower

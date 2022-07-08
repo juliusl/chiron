@@ -18,6 +18,7 @@ view model =
         column [ width fill, height fill, defaultSpacing ]
             [ viewHeader model
             , viewPage model
+            , viewFooter model
             ]
 
 
@@ -35,15 +36,25 @@ viewHeader model =
 viewPage : Model msg -> Element msg
 viewPage model =
     row [ width fill, height fill, defaultSpacing, defaultPadding ]
-        [ viewContent model
-        , viewDetail model
+        [ viewDetail model
+        , viewContent model
         ]
+viewFooter : Model msg -> Element msg
+viewFooter _ =
+    row
+        [ width fill
+        , defaultPadding
+        , height (px 100)
+        , Background.color (rgb255 0x95 0xA5 0x8D)
+        ]
+        []
+
 
 
 viewContent : Model msg -> Element msg
 viewContent model =
     column
-        [ width (fillPortion 2)
+        [ width (fillPortion 1)
         , height fill
         , defaultPadding
         ]
@@ -53,7 +64,7 @@ viewContent model =
 viewDetail : Model msg -> Element msg
 viewDetail model =
     column
-        [ width (fillPortion 1)
+        [ width (fillPortion 2)
         , height fill
         , defaultPadding
         ]

@@ -1,12 +1,11 @@
-use lifec_poem::{StaticFiles, WebApp};
+use lifec_poem::StaticFiles;
 use lifec::{
-    plugins::{Project, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote}, 
+    plugins::{Project, Clear, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote}, 
     editor::Call,
     *
 };
 use shinsu::NodeEditor;
 use imgui::Window;
-use poem::{handler, web::Path, Route, get};
 use std::env;
 
 mod cloud_init;
@@ -24,6 +23,9 @@ use elm::MakeElm;
 
 mod lab;
 use lab::Lab;
+
+mod run;
+mod design;
 
 fn main() {
     if let Some(project) = Project::runmd() {
@@ -59,6 +61,7 @@ fn create_runtime(project: Project) -> Runtime {
     runtime.install::<Call, Process>();
     runtime.install::<Call, Remote>();
     runtime.install::<Call, Println>();
+    runtime.install::<Call, Clear>();
     runtime.install::<Call, Timer>();
     // Installs a tool
     runtime.install::<Call, Install>();
@@ -107,6 +110,8 @@ fn create_runtime(project: Project) -> Runtime {
             .with_text("elm_src", "lib/elm/portal/src/Main.elm")
             .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
     }));
+
+    runtime.add_config(Config("empty", |_| {}));
 
     runtime
 }
@@ -171,20 +176,5 @@ impl<'a> System<'a> for Empty {
     type SystemData = ();
 
     fn run(&mut self, _: Self::SystemData) {
-    }
-}
-
-#[handler]
-fn hello(Path(name): Path<String>) -> String {
-    format!("hello: {}", name)
-}
-
-impl WebApp for Empty {
-    fn create(_: &mut plugins::ThunkContext) -> Self {
-        Empty{}
-    }
-
-    fn routes(&mut self) -> poem::Route {
-        Route::new().at("/hello/:name", get(hello))
     }
 }

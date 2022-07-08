@@ -10,7 +10,7 @@ import Instructions
 import Layout
 
 
-main : Program () Model Msg
+main : Program (Maybe String) Model Msg
 main =
     Browser.document
         { init = init
@@ -18,8 +18,6 @@ main =
         , update = update
         , subscriptions = subscriptions
         }
-
-
 
 -- MODEL
 
@@ -43,9 +41,13 @@ type Msg
     | Done
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, getLab )
+init : (Maybe String) -> ( Model, Cmd Msg )
+init maybelab =
+    case maybelab  of
+        Just lab -> 
+            ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, getLab lab )
+        Nothing -> 
+            ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, getLab "" )
 
 -- UPDATE
 
@@ -125,7 +127,6 @@ onNext : List String -> Maybe Msg
 onNext remaining =
     if List.isEmpty remaining then
         Nothing
-
     else
         Just (Instructions (String.join "\n" remaining))
 
@@ -181,9 +182,9 @@ tools:
 """
 
 -- TODO hardcoded url for now
-getLab : Cmd Msg
-getLab = 
+getLab : String -> Cmd Msg
+getLab lab = 
     Http.get 
-    { url = "/lab/dev_box"
+    { url = String.concat [ "/lab/", lab ]
     , expect = Http.expectString GotLab
     }

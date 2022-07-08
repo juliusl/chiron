@@ -21,5 +21,6 @@ mime_multipart = "0.6.0"
 hyper = "0.10.16"
 imgui = "0.8.2"
 logos = "0.12.1"
-poem = { version = "1.3.32", features = ["server", "static-files"] }
+poem = { version = "1.3.32", features = ["server", "static-files", "embed"] }
 tokio = "1.19.2"
+rust-embed = { version = "6.4.0", features = ["compression"] }
