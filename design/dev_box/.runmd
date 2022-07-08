@@ -5,7 +5,7 @@ define dev_box lab  .symbol default
 ``` lab
 add node_title      .text Setup devbox Runtime
 add description     .text Sets up local environment for building dev boxes
-add project_src     .text design/devbox/.runmd
+add project_src     .text design/dev_box/.runmd
 ```
 
 ``` dev_box lab
@@ -84,7 +84,8 @@ add index_html  .text index.html
 
 ``` design install
 add work_dir   .text .run/dev_box
-add file_src   .text design/devbox/.runmd
+add file_src   .text design/dev_box/.runmd
+add file_name  .text .runmd
 ```
 
 ``` html install

@@ -57,7 +57,7 @@ impl Plugin<ThunkContext> for Lab {
 
 #[handler]
 async fn lab(Path(name): Path<String>) -> String {
-    match tokio::fs::read_to_string(format!(".run/{name}/.runmd")).await {
+    match tokio::fs::read_to_string(format!("design/{name}/.runmd")).await {
         Ok(content) => {
             content
         },

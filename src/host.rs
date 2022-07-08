@@ -24,12 +24,18 @@ impl Host {
         &self, 
         app_world: &World
     ) -> Vec<Entity> {
+
+        let mut engines = vec![];
+        for (block_name, block) in self.0.project().iter_block() {
+            if let Some(_) = block.get_block("call") {
+                engines.push(block_name);
+            }
+        }
+
+        let engines = engines.iter().map(|e| e.to_string());
         self.0.runtime().create_engine_group::<Call>(
             app_world,
-            vec!["host", "setup", "setup_enter", "setup_exit"]
-                .iter()
-                .map(|s| s.to_string())
-                .collect(),
+            engines.collect(),
         )
     }
 
