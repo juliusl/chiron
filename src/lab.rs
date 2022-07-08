@@ -17,7 +17,7 @@ impl Plugin<ThunkContext> for Lab {
     }
 
     fn description() -> &'static str {
-        "Hosts a lab runtime"
+        "Starts a lab runtime w/ {project_src}"
     }
 
     fn call_with_context(context: &mut ThunkContext) -> Option<lifec::plugins::AsyncContext> {
@@ -27,15 +27,14 @@ impl Plugin<ThunkContext> for Lab {
                 if let Some(project_src) = tc.as_ref().find_text("project_src") {
                     if let Some(project) = Project::load_file(project_src) {
                         let runtime = create_runtime(project);
-                        let mut main = Host(
+                        let mut extension = Host(
                             RuntimeEditor::new(runtime), 
                             false
                         );
 
-                        let extension = &mut main;
                         let block_symbol = "lab";
                         Runtime::start_with(
-                            extension, 
+                            &mut extension, 
                             block_symbol, 
                             &tc, 
                             cancel_source

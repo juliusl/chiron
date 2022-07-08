@@ -1271,7 +1271,7 @@ dependencies = [
 [[package]]
 name = "lifec_poem"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec_poem.git?branch=main#a5523c5e522826d1d9002fd088f49c6d4141d2e4"
+source = "git+https://github.com/juliusl/lifec_poem.git?branch=main#d0c7808e5d2e5cd64111f61261b6ba5174b0bf3e"
 dependencies = [
  "lifec",
  "poem",

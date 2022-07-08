@@ -14,7 +14,7 @@ impl Plugin<ThunkContext> for Install {
     }
 
     fn description() -> &'static str {
-        "Loads an install config from {src_dir}/{tool_name}/{src_type}-{block_name}.{ext}"
+        "Loads an install config from `{src_dir}/{tool_name}/{src_type}-{block_name}.{ext}`"
     }
 
     fn call_with_context(context: &mut ThunkContext) -> Option<lifec::plugins::AsyncContext> {

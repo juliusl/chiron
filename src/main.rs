@@ -84,7 +84,25 @@ fn create_runtime(project: Project) -> Runtime {
         cloud_init::env(tc);
     }));
 
-    runtime.add_config(Config("elm_portal", |tc| {
+    runtime.add_config(Config("elm_js", |tc| {
+        tc.as_mut()
+            .with_text("ext", "js")
+            .add_text_attr("node_title", "Install elm js");
+
+        elm::env(tc);
+
+        tc.as_mut()
+            .with_text("elm_src", "lib/elm/portal/src/Main.elm")
+            .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
+    }));
+
+    runtime.add_config(Config("elm_html", |tc| {
+        tc.as_mut()
+            .with_text("ext", "html")
+            .add_text_attr("node_title", "Install elm html");
+
+        elm::env(tc);
+
         tc.as_mut()
             .with_text("elm_src", "lib/elm/portal/src/Main.elm")
             .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
