@@ -1,31 +1,30 @@
 # Sets up a static file host for elm portal
-``` app call
-define a_app open_file    .symbol script
-define b_app write_file   .symbol setup_portal
-define c_app open_file    .symbol index
-define d_app write_file   .symbol setup_portal
-define e_app static_files .symbol main
+``` setup call
+define script install   .symbol script
+define index  install   .symbol index
+```
+
+``` host call
+define e_app static_files  .symbol main
 ```
 
 # Portal files
-- Opens files to host from elm folder.
-``` script open_file
-add file_src .text lib/elm/portal/elm.js
-```
-
-``` index open_file
-add file_src .text lib/elm/portal/index.html
-```
-
-# Setup host directory 
-- Writes files to host to work_dir.
-``` setup_portal write_file
-add node_title .text Portal Setup
+``` script install
+add node_title .text Script setup
 add work_dir   .text .run/portal
+add file_src   .text lib/elm/portal/elm.js
 ```
 
+``` index install
+add node_title .text Index setup
+add work_dir   .text .run/portal
+add file_src   .text lib/elm/portal/index.html
+```
+
+# Portal host
 ``` main static_files
 add address    .text localhost:3000
 add work_dir   .text .run/portal
-add node_title .text Portal Host 
+add index_html .text index.html
+add node_title .text Static Files Host 
 ```

@@ -26,6 +26,7 @@ use lab::Lab;
 
 mod run;
 mod design;
+mod config;
 
 fn main() {
     if let Some(project) = Project::runmd() {
