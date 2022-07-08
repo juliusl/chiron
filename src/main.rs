@@ -39,7 +39,7 @@ fn main() {
                 start(
                 Host::from(runtime), 
                 &[
-                    "app",
+                    "host",
                 ]);
             }
         } else {

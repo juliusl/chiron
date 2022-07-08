@@ -82,8 +82,8 @@ defaultRenderer =
                 (items
                     |> List.map
                         (\(ListItem task children) ->
-                            Element.row [ Element.spacing 5 ]
-                                [ Element.row
+                            Element.paragraph [ Element.spacing 5 ]
+                                [Element.row
                                     [ Element.alignTop ]
                                     ((case task of
                                         IncompleteTask ->
@@ -95,8 +95,8 @@ defaultRenderer =
                                         NoTask ->
                                             Element.text "-"
                                      )
-                                        :: Element.text " "
-                                        :: children
+                                     :: Element.text " "
+                                     :: children
                                     )
                                 ]
                         )
@@ -224,7 +224,8 @@ heading_one level rawText =
 
 heading_two : Int -> String -> List (Attribute msg)
 heading_two level rawText =
-    [ Font.size 20
+    [ Font.size 18
+    , Font.bold
     , Font.underline
     , Font.family [ Font.typeface "system-ui" ]
     , Region.heading level

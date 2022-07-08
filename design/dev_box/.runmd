@@ -1,7 +1,7 @@
-# Defining dev box runtime
-- Defining `default call` in the `.runmd` enables chiron to bootstrap an engine, when the directory is dropped into the tool
-- Dropping individual `.runmd` files into the tool, (such as `demo.runmd`) will scan for all engines found, and add those to the runtime.
-- Once loaded into the runtime, engines can be sequenced with the node editor.
+# Defining a new runtime
+- Defining `default call` will enable chiron to bootstrap a runtime. 
+- To use this feature drop a directory containing a `.runmd` file into chiron.
+``` md
 ``` default call
 define dev_box lab  .symbol default
 ``` lab
@@ -9,7 +9,11 @@ add node_title      .text Setup devbox Runtime
 add description     .text Sets up local environment for building dev boxes
 add project_src     .text design/dev_box/.runmd
 ```
-- This lab will prepare local environment, for building new dev boxes. In addition this lab will launch and host a site for browsing documentation.
+
+- This lab will prepare local environment, for building new dev boxes. In addition, this lab will launch and host a site for browsing documentation.
+- Dropping individual `.runmd` files into the tool will scan for all engines adding them to the runtime. 
+- For example, each row of `dev_box lab` would be available in the node editor for sequencing.
+``` md
 ``` dev_box lab
 add    node_title       .text   Dev box setup
 define setup_enter call .symbol setup_exit
@@ -17,67 +21,75 @@ define setup_exit  call .symbol setup
 define setup       call .symbol host
 define host        call  
 ```
+- The above sequence is defined by adding `.symbol {engine_name}` after each `call` line.
+- In the editor `dev_box lab` would be represented by a single node with the title "Dev box setup".
 
 # Setup for an Azure environment
 - This is setup for cloud_init hosted on azure
-``` setup_enter call
-add    node_title     .text Setup cloud_init enter
-define azure install  .text cloud_init_enter
+``` md
+``` setup_enter call 
+add    node_title             .text Setup cloud_init enter
+define azure         install  .text cloud_init_enter
 ```
 
-``` setup_exit call
-add    node_title     .text Setup cloud_init exit
-define azure install  .text cloud_init_exit
+``` md
+``` setup_exit call 
+add    node_title           .text Setup cloud_init exit
+define azure        install .text cloud_init_exit
 ```
 
-## Example of setting up user_data
+## Example for setting up user_data
 - For `azure`, you can use `MIME` message to package `cloud_init` parts
 - `make_mime` formats the message with each `part` defined in the block
-``` package make_mime
-add    node_title    .text Sample User_data
-add    work_dir      .text .config/cloud_init
-add    file_dst      .text .run/cloud_init/user_data
-define a_enter  part .text enter-azure.yml_jinja2
-define b_azcli  part .text install-azcli.yml_jinja2
-define c_golang part .text install-golang.yml_jinja2
-define d_docker part .text install-docker.yml_jinja2
-define e_exit   part .text exit-azure.yml_jinja2
+``` md
+``` package make_mime 
+add    node_title           .text Sample User_data
+add    work_dir             .text .config/cloud_init
+add    file_dst             .text .run/cloud_init/user_data
+define a_enter        part  .text enter-azure.yml_jinja2
+define b_azcli        part  .text install-azcli.yml_jinja2
+define c_golang       part  .text install-golang.yml_jinja2
+define d_docker       part  .text install-docker.yml_jinja2
+define e_exit         part  .text exit-azure.yml_jinja2
 ```
 
 # Setup dev box
 - These are different components that can be installed with cloud_init
+``` md
 ``` setup call
-add    node_title                          .text Setup dev box
-define accelerated-container-image install .text cloud_init
-define azcli                       install .text cloud_init
-define golang                      install .text cloud_init 
-define docker                      install .text cloud_init
-define bondcompiler                install .text cloud_init
-define cfssl                       install .text cloud_init
-define dotnet-sdk                  install .text cloud_init
-define gcm                         install .text cloud_init
-define git-server                  install .text cloud_init
-define gitlab                      install .text cloud_init
-define helm                        install .text cloud_init
-define kind                        install .text cloud_init
-define minikube                    install .text cloud_init
-define mkcert                      install .text cloud_init
-define overlaybd                   install .text cloud_init
-define rustlang                    install .text cloud_init
+add    node_title                           .text Setup dev box
+define accelerated-container-image install  .text cloud_init
+define azcli                       install  .text cloud_init
+define golang                      install  .text cloud_init 
+define docker                      install  .text cloud_init
+define bondcompiler                install  .text cloud_init
+define cfssl                       install  .text cloud_init
+define dotnet-sdk                  install  .text cloud_init
+define gcm                         install  .text cloud_init
+define git-server                  install  .text cloud_init
+define gitlab                      install  .text cloud_init
+define helm                        install  .text cloud_init
+define kind                        install  .text cloud_init
+define minikube                    install  .text cloud_init
+define mkcert                      install  .text cloud_init
+define overlaybd                   install  .text cloud_init
+define rustlang                    install  .text cloud_init
 ```
 
 # Labs
 - These are the different labs
-``` host call
-define a_host  clear    .text   empty
-define dev_box install  .symbol dev_box
-define host    app_host .symbol host
+``` md
+``` host call  
+define a_host   clear       .text   empty
+define dev_box  install     .symbol dev_box
+define host     app_host    .symbol host
 ``` app_host
-add address     .text localhost:3000
+add address                 .text   localhost:3000
 ```
 
 - Installs the "portal" app for the dev_box lab
-``` dev_box install
-add work_dir    .text  .run/dev_box
-add file_src    .text  lib/elm/portal/elm.min.js
+``` md
+``` dev_box install 
+add work_dir                .text   .run/dev_box
+add file_src                .text   lib/elm/portal/elm.min.js
 ```

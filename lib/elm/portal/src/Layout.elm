@@ -38,6 +38,7 @@ viewPage model =
     row [ width fill, height fill, defaultSpacing, defaultPadding ]
         [ viewDetail model
         , viewContent model
+        , viewGutter model
         ]
 viewFooter : Model msg -> Element msg
 viewFooter _ =
@@ -54,7 +55,7 @@ viewFooter _ =
 viewContent : Model msg -> Element msg
 viewContent model =
     column
-        [ width (fillPortion 1)
+        [ width (fillPortion 2)
         , height fill
         , defaultPadding
         ]
@@ -64,11 +65,20 @@ viewContent model =
 viewDetail : Model msg -> Element msg
 viewDetail model =
     column
-        [ width (fillPortion 2)
+        [ width (fillPortion 1)
         , height fill
         , defaultPadding
         ]
         [ model.detail ]
+
+viewGutter : Model msg -> Element msg
+viewGutter _ =
+    column
+        [ width (fillPortion 1)
+        , height fill
+        , defaultPadding
+        ]
+        [ ]
 
 
 defaultPadding : Attribute msg
