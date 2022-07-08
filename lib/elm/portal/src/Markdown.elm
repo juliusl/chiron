@@ -196,9 +196,9 @@ heading { level, rawText, children } =
     Element.paragraph
         (  case level of
         Block.H1 -> 
-            h1 (headingLevelToInt level) rawText 
+            heading_one (headingLevelToInt level) rawText 
         Block.H2 -> 
-            h2 (headingLevelToInt level) rawText 
+            heading_two (headingLevelToInt level) rawText 
         _ -> 
             [ Font.size 14
             , Font.family [ Font.typeface "system-ui" ]
@@ -210,8 +210,8 @@ heading { level, rawText, children } =
             ])
         children
 
-h1 : Int -> String -> List (Attribute msg)
-h1 level rawText =
+heading_one : Int -> String -> List (Attribute msg)
+heading_one level rawText =
     [ Font.size 20
     , Font.bold
     , Font.family [ Font.typeface "system-ui" ]
@@ -222,8 +222,8 @@ h1 level rawText =
         (Html.Attributes.id (rawTextToId rawText))
     ]
 
-h2 : Int -> String -> List (Attribute msg)
-h2 level rawText =
+heading_two : Int -> String -> List (Attribute msg)
+heading_two level rawText =
     [ Font.size 20
     , Font.underline
     , Font.family [ Font.typeface "system-ui" ]
