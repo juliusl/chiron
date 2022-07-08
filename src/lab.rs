@@ -47,6 +47,19 @@ impl Plugin<ThunkContext> for Lab {
     }
 }
 
+impl WebApp for Lab {
+    fn create(_: &mut ThunkContext) -> Self {
+        Self{}
+    }
+
+    fn routes(&mut self) -> poem::Route {
+        Route::new()
+            .nest("/.run", EmbeddedFilesEndpoint::<Run>::new())
+            .at("/:lab_name", get(index))
+            .at("/lab/:name", get(lab))
+    }
+}
+
 #[handler]
 async fn lab(Path(name): Path<String>) -> String {
     if let Some(lab) = Design::get(format!("{name}/.runmd").as_str()) {
@@ -104,17 +117,4 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
     );
 
     Html(html)
-}
-
-impl WebApp for Lab {
-    fn create(_: &mut ThunkContext) -> Self {
-        Self{}
-    }
-
-    fn routes(&mut self) -> poem::Route {
-        Route::new()
-            .nest("/.run", EmbeddedFilesEndpoint::<Run>::new())
-            .at("/:lab_name", get(index))
-            .at("/lab/:name", get(lab))
-    }
 }
