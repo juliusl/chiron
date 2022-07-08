@@ -1,4 +1,4 @@
-use lifec_poem::{StaticFiles, WebApp, AppHost};
+use lifec_poem::{StaticFiles, WebApp};
 use lifec::{
     plugins::{Project, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote}, 
     editor::Call,

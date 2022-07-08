@@ -8,11 +8,12 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Input as Input
-import List exposing (any)
+import List 
 import Dict
 
 -- App
 
+main : Program () Model Msg
 main =
     Browser.element 
         { init = init
@@ -22,7 +23,7 @@ main =
         }
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 init: () -> (Model, Cmd Msg)

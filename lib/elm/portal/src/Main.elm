@@ -10,6 +10,7 @@ import Instructions
 import Layout
 
 
+main : Program () Model Msg
 main =
     Browser.document
         { init = init
