@@ -175,7 +175,6 @@ parseCodeBlock details =
             case lang of
                 "yaml" ->
                     formatCodeBlock (Element.text "(TODO) Render a form from this yaml block")
-
                 "markdown" ->
                     case viewMarkdown details.body of
                         Ok rendered ->
@@ -207,8 +206,7 @@ heading { level, rawText, children } =
                 (Html.Attributes.attribute "name" (rawTextToId rawText))
             , Element.htmlAttribute
                 (Html.Attributes.id (rawTextToId rawText))
-            ])
-        children
+            ]) children
 
 heading_one : Int -> String -> List (Attribute msg)
 heading_one level rawText =
