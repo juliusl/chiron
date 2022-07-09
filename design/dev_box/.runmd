@@ -3,12 +3,8 @@
 - To use this feature drop a directory containing a `.runmd` file into chiron.
 ``` md
 ``` default call
-define dev_box lab  .symbol default
-``` lab
-add node_title      .text Setup devbox Runtime
-add description     .text Sets up local environment for building dev boxes
-add project_src     .text design/dev_box/.runmd
-```
+define dev_box lab  .symbol dev_box
+``` 
 
 - This lab will prepare local environment, for building new dev boxes. In addition, this lab will launch and host a site for browsing documentation.
 - Dropping individual `.runmd` files into the tool will scan for all engines adding them to the runtime. 
@@ -18,9 +14,12 @@ add project_src     .text design/dev_box/.runmd
 add    node_title       .text   Dev box setup
 define setup_enter call .symbol setup_exit
 define setup_exit  call .symbol setup
-define setup       call .symbol host
-define host        call  
+define setup       call .symbol dev_box
+define dev_box     call
+add description         .text Sets up local environment for building dev boxes
+add project_src         .text design/dev_box/.runmd
 ```
+
 - The above sequence is defined by adding `.symbol {engine_name}` after each `call` line.
 - In the editor `dev_box lab` would be represented by a single node with the title "Dev box setup".
 
@@ -76,29 +75,32 @@ define overlaybd                   install  .text cloud_init
 define rustlang                    install  .text cloud_init
 ```
 
-# Labs
-- These are the different labs
+# Hosting Labs
+- This sequence compiles the elm app, installs the output, and then hosts the result.
 ``` md
-``` host call  
-define a_host           clear    .text   empty
-define b_host           process  .symbol elm_portal
-define dev_box          install  .symbol dev_box
-define host             app_host .symbol host
-``` app_host
+``` dev_box call  
+define b_host           process  .symbol compile_elm
+define c_host           install  .symbol dev_box
+define d_host           app_host .symbol dev_box
+```
+
+- Sets the address to host the app to `localhost:3000`
+``` md
+``` dev_box app_host
 add address                      .text   localhost:3000
 ```
 
 - Installs the "portal" app for the dev_box lab, in this case uses the optimized version.
 ``` md
 ``` dev_box install 
-add work_dir                .text   design/dev_box
-add file_src                .text   lib/elm/portal/elm.min.js
+add work_dir                      .text   design/dev_box
+add file_src                      .text   lib/elm/portal/elm.min.js
 ``` 
 
-- This process compiles the portal app. 
-- TODO, run optimization script on elm output
+- This process compiles the elm app
+- TODO: add the optimization steps
 ``` md
-``` elm_portal process
+``` compile_elm process
 add command                 .text   elm make src/Main.elm --output portal.js
 add current_dir             .text   lib/elm/portal
 ```
