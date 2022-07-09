@@ -4,11 +4,13 @@ use lifec::{
     *,
 };
 
-pub struct Host(pub RuntimeEditor, pub bool);
+/// This type wraps the runtime editor as the underlying extension
+/// Can be executed standalone w/o the main window
+pub struct Host(pub RuntimeEditor);
 
 impl From<Runtime> for Host {
     fn from(runtime: Runtime) -> Self {
-        Host(RuntimeEditor::new(runtime), false)
+        Host(RuntimeEditor::new(runtime))
     }
 }
 
@@ -19,8 +21,8 @@ impl AsRef<Runtime> for Host {
 }
 
 impl Host {
-    /// Creates a new host engine group
-    fn create_host(
+    /// Scans the project creating all engines found in the file
+    fn create_engine_parts(
         &self, 
         app_world: &World
     ) -> Vec<Entity> {
@@ -70,8 +72,11 @@ impl Extension for Host {
             .build(ui, || {
                 ui.menu_bar(|| {
                     ui.menu("Actions", || {
-                        if MenuItem::new("Create host").build(ui) {
-                            self.create_host(app_world);
+                        if MenuItem::new("Scan for engine parts").build(ui) {
+                            self.create_engine_parts(app_world);
+                        }
+                        if ui.is_item_hovered() {
+                            ui.tooltip_text("Scans the current project for all engines, adding each to the current runtime.");
                         }
                     });
                 });
@@ -101,7 +106,7 @@ impl Extension for Host {
                     {
                         *self.0.project_mut().as_mut() = file;
                         *self.0.project_mut() = self.0.project_mut().reload_source();
-                         self.create_host(app_world);
+                         self.create_engine_parts(app_world);
                     }
                 }
             }
@@ -111,12 +116,5 @@ impl Extension for Host {
 
     fn on_run(&'_ mut self, app_world: &World) {
         self.0.on_run(app_world);
-    }
-
-    fn on_maintain(&'_ mut self, app_world: &mut World) {
-        if self.1 {
-            app_world.delete_all();
-            self.1 = false;
-        }
     }
 }

@@ -18,9 +18,6 @@ use install::Install;
 mod host;
 use host::Host;
 
-mod elm;
-use elm::MakeElm;
-
 mod lab;
 use lab::Lab;
 
@@ -71,7 +68,6 @@ fn create_runtime(project: Project) -> Runtime {
     runtime.install::<Call, ReadMime>();
     // Hosting code
     runtime.install::<Call, StaticFiles>();
-    runtime.install::<Call, MakeElm>();
     runtime.install::<Call, Lab>();
   
     runtime.add_config(Config("cloud_init", |tc| {
@@ -86,30 +82,6 @@ fn create_runtime(project: Project) -> Runtime {
     runtime.add_config(Config("cloud_init_enter", |tc| {        
         tc.as_mut().add_text_attr("src_type", "enter");
         cloud_init::env(tc);
-    }));
-
-    runtime.add_config(Config("elm_js", |tc| {
-        tc.as_mut()
-            .with_text("ext", "js")
-            .add_text_attr("node_title", "Install elm js");
-
-        elm::env(tc);
-
-        tc.as_mut()
-            .with_text("elm_src", "lib/elm/portal/src/Main.elm")
-            .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
-    }));
-
-    runtime.add_config(Config("elm_html", |tc| {
-        tc.as_mut()
-            .with_text("ext", "html")
-            .add_text_attr("node_title", "Install elm html");
-
-        elm::env(tc);
-
-        tc.as_mut()
-            .with_text("elm_src", "lib/elm/portal/src/Main.elm")
-            .add_text_attr("elm_dst", "lib/elm/portal/portal.js");
     }));
 
     runtime.add_config(Config("empty", |_| {}));

@@ -22,6 +22,16 @@ define golang   install    .text   cloud_init
 define docker   install    .text   cloud_init
 ```
 
+``` elm_portal call
+define a_make process .symbol elm_portal
+define b_make println .symbol elm_portal
+``` process
+add command      .text elm make src/Main.elm --output elm_test.js
+add current_dir  .text lib/elm/portal
+``` println
+add node_title   .text Compile elm portal
+```
+
 # (TODO) Host dev box
 ``` host call
 ```

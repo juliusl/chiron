@@ -1,8 +1,8 @@
 use crate::{create_runtime, host::Host, run::Run, design::Design};
 use lifec::{
-    editor::{Call, RuntimeEditor},
+    editor::{Call, RuntimeEditor, ProgressStatusBar},
     plugins::{Plugin, Project, ThunkContext},
-    Runtime,
+    Runtime, System,
 };
 use lifec_poem::{AppHost, WebApp};
 use poem::{
@@ -32,7 +32,7 @@ impl Plugin<ThunkContext> for Lab {
                     if let Some(project) = Project::load_file(project_src) {
                         let mut runtime = create_runtime(project);
                         runtime.install::<Call, AppHost<Lab>>();
-                        let mut extension = Host(RuntimeEditor::new(runtime), false);
+                        let mut extension = Host(RuntimeEditor::new(runtime));
 
                         eprintln!("{}", tc.block.block_name);
 
@@ -114,7 +114,7 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 </body>
 </html>
 "#
-    );
+);
 
     Html(html)
 }
