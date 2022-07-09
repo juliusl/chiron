@@ -116,7 +116,7 @@ view model =
             -- , detail = Instructions.viewInstructions onNext Done model.instructions
             -- },
             Layout.view
-            { title = "Instructions"
+            { title = ""
             , content = Instructions.viewInstructionsFullPage model.instructions
             , detail = Element.text ""
             }

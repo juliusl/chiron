@@ -80,22 +80,25 @@ define rustlang                    install  .text cloud_init
 - These are the different labs
 ``` md
 ``` host call  
-define a_host   clear       .text   empty
-define b_host   process     .symbol elm_portal
-define dev_box  install     .symbol dev_box
-define host     app_host    .symbol host
+define a_host           clear    .text   empty
+define b_host           process  .symbol elm_portal
+define dev_box          install  .symbol dev_box
+define host             app_host .symbol host
 ``` app_host
-add address                 .text   localhost:3000
+add address                      .text   localhost:3000
 ```
 
-- Installs the "portal" app for the dev_box lab
+- Installs the "portal" app for the dev_box lab, in this case uses the optimized version.
 ``` md
 ``` dev_box install 
 add work_dir                .text   design/dev_box
 add file_src                .text   lib/elm/portal/elm.min.js
 ``` 
 
+- This process compiles the portal app. 
+- TODO, run optimization script on elm output
+``` md
 ``` elm_portal process
-add command                 .text elm make src/Main.elm --output portal.js
-add current_dir             .text lib/elm/portal
+add command                 .text   elm make src/Main.elm --output portal.js
+add current_dir             .text   lib/elm/portal
 ```
