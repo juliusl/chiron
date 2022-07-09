@@ -12,12 +12,12 @@ define dev_box lab  .symbol dev_box
 ``` md
 ``` dev_box lab
 add    node_title       .text   Dev box setup
-define setup_enter call .symbol setup_exit
-define setup_exit  call .symbol setup
-define setup       call .symbol dev_box
-define dev_box     call
-add description         .text Sets up local environment for building dev boxes
-add project_src         .text design/dev_box/.runmd
+define setup        call .symbol setup_enter
+define setup_enter  call .symbol setup_exit
+define setup_exit   call .symbol host
+define host         call
+add description          .text Sets up local environment for building dev boxes
+add project_src          .text design/dev_box/.runmd
 ```
 
 - The above sequence is defined by adding `.symbol {engine_name}` after each `call` line.
@@ -78,9 +78,10 @@ define rustlang                    install  .text cloud_init
 # Hosting Labs
 - This sequence compiles the elm app, installs the output, and then hosts the result.
 ``` md
-``` dev_box call  
+``` host call
+define a_host           clear    .text   empty
 define b_host           process  .symbol compile_elm
-define c_host           install  .symbol dev_box
+define c_host           install  .symbol portal
 define d_host           app_host .symbol dev_box
 ```
 
@@ -92,7 +93,7 @@ add address                      .text   localhost:3000
 
 - Installs the "portal" app for the dev_box lab, in this case uses the optimized version.
 ``` md
-``` dev_box install 
+``` portal install 
 add work_dir                      .text   design/dev_box
 add file_src                      .text   lib/elm/portal/elm.min.js
 ``` 

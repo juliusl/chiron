@@ -30,12 +30,17 @@ impl Plugin<ThunkContext> for Lab {
             async move {
                 if let Some(project_src) = tc.as_ref().find_text("project_src") {
                     if let Some(project) = Project::load_file(project_src) {
+                        let project = project.with_block(&tc.block.block_name, "app_host", |c| {
+                            if let Some(address) = tc.as_ref().find_text("address") {
+                                c.with_text("address", address);
+                            }
+                        });
+
                         let mut runtime = create_runtime(project);
                         runtime.install::<Call, AppHost<Lab>>();
                         let mut extension = Host(RuntimeEditor::new(runtime));
 
                         eprintln!("{}", tc.block.block_name);
-
                         let block_symbol = "lab";
                         Runtime::start_with(&mut extension, block_symbol, &tc, cancel_source);
                     }
@@ -48,7 +53,15 @@ impl Plugin<ThunkContext> for Lab {
 }
 
 impl WebApp for Lab {
-    fn create(_: &mut ThunkContext) -> Self {
+    fn create(tc: &mut ThunkContext) -> Self {
+        for attr in tc.as_ref().iter_attributes() {
+            match  attr.value(){
+                lifec::Value::TextBuffer(value) => {
+                    eprintln!("{} {}", attr.name(), value);
+                },
+                _ => {}
+            }
+        }
         Self{}
     }
 
