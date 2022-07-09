@@ -1,14 +1,15 @@
-use crate::{create_runtime, host::Host, design::Design};
+use crate::{create_runtime, design::Design, host::Host};
 use lifec::{
-    editor::{Call, RuntimeEditor},
+    editor::RuntimeEditor,
     plugins::{Plugin, Project, ThunkContext},
-    Runtime
+    Runtime,
 };
-use lifec_poem::{AppHost, WebApp};
+use lifec_poem::WebApp;
 use poem::{
+    endpoint::EmbeddedFilesEndpoint,
     get, handler,
-    web::{Html, Path}, Route,
-    endpoint::EmbeddedFilesEndpoint
+    web::{Html, Path},
+    Route,
 };
 
 /// Lab component hosts a runtime for browsing .runmd in the design folder
@@ -30,23 +31,26 @@ impl Plugin<ThunkContext> for Lab {
             async move {
                 if let Some(project_src) = tc.as_ref().find_text("project_src") {
                     if let Some(project) = Project::load_file(project_src) {
-                        let project = project.with_block(&tc.block.block_name, "app_host", |c| {
-                            if let Some(address) = tc.as_ref().find_text("address") {
-                                c.with_text("address", address);
-                            }
-                        });
-
-                        let block_name =  tc.block.block_name.to_string();
+                        let block_name = tc.block.block_name.to_string();
                         if let Some(address) = tc.as_ref().find_text("address") {
-                            tc.update_status_only(format!("Starting lab on {address}/{block_name}")).await;
+                            let project =
+                                project.with_block(&tc.block.block_name, "app_host", |c| {
+                                    c.add_text_attr("address", &address);
+                                });
+
+                            let log = format!(
+                                "Starting lab on {address}/{block_name}"
+                            );
+
+                            tc.update_status_only(&log).await;
+                            eprintln!("{log}");
+
+                            let runtime = create_runtime(project);
+                            let mut extension = Host(RuntimeEditor::new(runtime));
+
+                            let block_symbol = "lab";
+                            Runtime::start_with(&mut extension, block_symbol, &tc, cancel_source);
                         }
-
-                        let mut runtime = create_runtime(project);
-                        runtime.install::<Call, AppHost<Lab>>();
-                        let mut extension = Host(RuntimeEditor::new(runtime));
-
-                        let block_symbol = "lab";
-                        Runtime::start_with(&mut extension, block_symbol, &tc, cancel_source);
                     }
                 }
 
@@ -58,7 +62,7 @@ impl Plugin<ThunkContext> for Lab {
 
 impl WebApp for Lab {
     fn create(_: &mut ThunkContext) -> Self {
-        Self{}
+        Self {}
     }
 
     fn routes(&mut self) -> poem::Route {
@@ -87,7 +91,7 @@ async fn lab(Path(name): Path<String>) -> String {
 #[handler]
 fn index(Path(lab_name): Path<String>) -> Html<String> {
     let html = format!(
-r###"
+        r###"
 <!DOCTYPE HTML>
 <html>
 
