@@ -95,7 +95,7 @@ async fn lab(Path(name): Path<String>) -> String {
 #[handler]
 fn index(Path(lab_name): Path<String>) -> Html<String> {
     let html = format!(
-        r#"
+r###"
 <!DOCTYPE HTML>
 <html>
 
@@ -130,8 +130,8 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 	</script>
 </body>
 </html>
-"#
-);
-
+"###
+    );
+    
     Html(html)
 }
