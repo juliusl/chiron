@@ -1,4 +1,4 @@
-use lifec_poem::StaticFiles;
+use lifec_poem::{StaticFiles, AppHost};
 use lifec::{
     plugins::{Project, Clear, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote}, 
     editor::Call,
@@ -67,7 +67,7 @@ fn create_runtime(project: Project) -> Runtime {
     // Hosting code
     runtime.install::<Call, StaticFiles>();
     runtime.install::<Call, Lab>();
-  
+    runtime.install::<Call, AppHost<Lab>>();
     runtime.add_config(Config("cloud_init", |tc| {
         cloud_init::env(tc);
     }));

@@ -85,7 +85,8 @@ define d_host           app_host .symbol dev_box
 - Sets the address to host the app to `localhost:3000`
 ``` md
 ``` dev_box app_host
-add address                      .text   localhost:3000
+add node_title                   .text  Host lab app_host
+add address                      .text  localhost:3000
 ```
 
 - Installs the "portal" app for the dev_box lab, in this case uses the optimized version.
