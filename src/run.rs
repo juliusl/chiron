@@ -2,5 +2,5 @@ use rust_embed::RustEmbed;
 
 
 #[derive(RustEmbed, Default)]
-#[folder = ".run"]
+#[folder = "design"]
 pub struct Run;

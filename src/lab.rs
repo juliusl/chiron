@@ -1,8 +1,8 @@
 use crate::{create_runtime, host::Host, run::Run, design::Design};
 use lifec::{
-    editor::{Call, RuntimeEditor, ProgressStatusBar},
+    editor::{Call, RuntimeEditor},
     plugins::{Plugin, Project, ThunkContext},
-    Runtime, System,
+    Runtime
 };
 use lifec_poem::{AppHost, WebApp};
 use poem::{

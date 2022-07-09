@@ -91,7 +91,7 @@ add address                 .text   localhost:3000
 - Installs the "portal" app for the dev_box lab
 ``` md
 ``` dev_box install 
-add work_dir                .text   .run/dev_box
+add work_dir                .text   design/dev_box
 add file_src                .text   lib/elm/portal/elm.min.js
 ``` 
 
