@@ -11,13 +11,15 @@ define dev_box lab  .symbol dev_box
 - For example, each row of `dev_box lab` would be available in the node editor for sequencing.
 ``` md
 ``` dev_box lab
-add    node_title       .text   Dev box setup
-define setup        call .symbol setup_enter
-define setup_enter  call .symbol setup_exit
-define setup_exit   call .symbol host
-define host         call
-add description          .text Sets up local environment for building dev boxes
-add project_src          .text design/dev_box/.runmd
+# Engine sequence
+define setup         call .symbol setup_azure
+define setup_azure   call .symbol host
+define host          call
+
+# Properties
+add node_title      .text Dev box setup
+add description     .text Sets up local environment for building dev boxes.
+add project_src     .text design/dev_box/.runmd
 ```
 
 - The above sequence is defined by adding `.symbol {engine_name}` after each `call` line.
@@ -26,15 +28,10 @@ add project_src          .text design/dev_box/.runmd
 # Setup for an Azure environment
 - This is setup for cloud_init hosted on azure
 ``` md
-``` setup_enter call 
-add    node_title             .text Setup cloud_init enter
-define azure         install  .text cloud_init_enter
-```
-
-``` md
-``` setup_exit call 
-add    node_title           .text Setup cloud_init exit
-define azure        install .text cloud_init_exit
+``` setup_azure call 
+add    node_title                   .text Setup cloud_init enter
+define azure_enter         install  .text cloud_init_enter
+define azure_exit          install  .text cloud_init_exit
 ```
 
 ## Example for setting up user_data

@@ -1,4 +1,4 @@
-use crate::{create_runtime, host::Host, run::Run, design::Design};
+use crate::{create_runtime, host::Host, design::Design};
 use lifec::{
     editor::{Call, RuntimeEditor},
     plugins::{Plugin, Project, ThunkContext},
@@ -57,21 +57,13 @@ impl Plugin<ThunkContext> for Lab {
 }
 
 impl WebApp for Lab {
-    fn create(tc: &mut ThunkContext) -> Self {
-        for attr in tc.as_ref().iter_attributes() {
-            match  attr.value(){
-                lifec::Value::TextBuffer(value) => {
-                    eprintln!("{} {}", attr.name(), value);
-                },
-                _ => {}
-            }
-        }
+    fn create(_: &mut ThunkContext) -> Self {
         Self{}
     }
 
     fn routes(&mut self) -> poem::Route {
         Route::new()
-            .nest("/.run", EmbeddedFilesEndpoint::<Run>::new())
+            .nest("/.run", EmbeddedFilesEndpoint::<Design>::new())
             .at("/:lab_name", get(index))
             .at("/lab/:name", get(lab))
     }
@@ -132,6 +124,6 @@ r###"
 </html>
 "###
     );
-    
+
     Html(html)
 }

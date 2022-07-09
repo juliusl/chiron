@@ -21,7 +21,6 @@ use host::Host;
 mod lab;
 use lab::Lab;
 
-mod run;
 mod design;
 
 fn main() {
