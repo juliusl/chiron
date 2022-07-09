@@ -36,11 +36,15 @@ impl Plugin<ThunkContext> for Lab {
                             }
                         });
 
+                        let block_name =  tc.block.block_name.to_string();
+                        if let Some(address) = tc.as_ref().find_text("address") {
+                            tc.update_status_only(format!("Starting lab on {address}/{block_name}")).await;
+                        }
+
                         let mut runtime = create_runtime(project);
                         runtime.install::<Call, AppHost<Lab>>();
                         let mut extension = Host(RuntimeEditor::new(runtime));
 
-                        eprintln!("{}", tc.block.block_name);
                         let block_symbol = "lab";
                         Runtime::start_with(&mut extension, block_symbol, &tc, cancel_source);
                     }
