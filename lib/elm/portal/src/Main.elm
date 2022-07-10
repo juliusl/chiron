@@ -22,6 +22,9 @@ type alias Model =
 type alias Editor =
     { text : String, language : String, saved : String }
 
+type alias Command = 
+    { onPress : Msg, label: Element Msg }
+
 type Msg
     = ResetText
     | Dispatch String
@@ -60,44 +63,50 @@ init maybelab =
 view : Model -> Browser.Document Msg
 view model =
     let
-        viewFull =
+        enableFullView =
             model.viewFull
+        enableEdit = 
+            model.edit
+        instructions = 
+            model.instructions
+        editor = 
+            { enableMonaco = False, model = model }
     in
     { title = "Chiron lab portal"
-    , body = (
-        if viewFull then
-        [ 
-            Layout.view
+    , body = [
+          Layout.view
             { title = ""
-            , shrinkContent = model.edit
-            , content = Instructions.viewFullPage model.instructions
-            , left_detail = viewCodeEditor { enableMonaco = False, model = model }
-            , right_detail = viewCommands Edit
+            , shrinkContent = enableEdit
+            , content = (
+                if enableFullView then 
+                    Instructions.viewFullPage instructions
+                else
+                    Instructions.viewInstructions onNext ViewFull Done instructions
+            )
+            , left_detail = viewCodeEditor editor
+            , right_detail = viewCommands [ { onPress = Edit, label = (Element.text "Edit")} ]
             }
         ]
-        else 
-        [
-            Layout.view
-            { title = ""
-            , shrinkContent = model.edit
-            , content = Instructions.viewInstructions onNext ViewFull Done model.instructions
-            , left_detail = viewCodeEditor { enableMonaco = False, model = model }
-            , right_detail = viewCommands Edit
-            }
-        ])
     }
 
-viewCommands : msg -> Element msg 
-viewCommands onEdit = 
-        Element.column 
+viewCommands : (List Command) -> Element Msg 
+viewCommands =
+    (\commands ->
+                Element.column 
             [ Border.widthEach { top = 0, right = 0, bottom = 0, left = 1 }
             , paddingEach { top = 4, right = 8, left = 10, bottom = 4}
             , Border.color (Element.rgb255 145 145 145)
-            ] [ Element.Input.button 
+            ] (
+                commands |> List.map
+                    (\command -> 
+                    Element.Input.button 
                     [ Element.Font.size 14
                     , Element.Font.family [  Font.typeface "system-ui" ]
-                    ] { onPress = Just onEdit, label = Element.text "Edit" } 
-                    ]
+                    ] { onPress = Just command.onPress, label = command.label }
+                    )
+            )
+    )
+
 
 viewCodeEditor : { enableMonaco : Bool, model : Model } -> Element Msg
 viewCodeEditor settings =

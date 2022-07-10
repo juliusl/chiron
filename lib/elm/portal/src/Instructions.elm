@@ -13,8 +13,8 @@ viewInstructions onNext onViewFull onDone markdown =
     in
     case Markdown.viewMarkdown (String.join "\n" root.value.content) of
         Ok rendered ->
-            Element.column [ spacing 20 ] (List.append rendered [ 
-                Element.row [ width fill ] 
+            Element.column [ spacing 20, height fill ] (List.append rendered [ 
+                Element.row [ width fill  ] 
                     [ viewButton onNext onDone root.remaining 
                     , viewFullButton onViewFull
                     ]

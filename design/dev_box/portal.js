@@ -6534,6 +6534,12 @@ var $author$project$Main$onNext = function (remaining) {
 		$author$project$Main$Instructions(
 			A2($elm$core$String$join, '\n', remaining)));
 };
+var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var $mdgriffith$elm_ui$Element$text = function (content) {
+	return $mdgriffith$elm_ui$Internal$Model$Text(content);
+};
 var $mdgriffith$elm_ui$Internal$Model$Unkeyed = function (a) {
 	return {$: 'Unkeyed', a: a};
 };
@@ -12381,12 +12387,6 @@ var $author$project$Layout$viewFooter = function (_v0) {
 			]),
 		_List_Nil);
 };
-var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
-	return {$: 'Text', a: a};
-};
-var $mdgriffith$elm_ui$Element$text = function (content) {
-	return $mdgriffith$elm_ui$Internal$Model$Text(content);
-};
 var $author$project$Layout$viewHeader = function (model) {
 	return A2(
 		$mdgriffith$elm_ui$Element$row,
@@ -13728,7 +13728,7 @@ var $mdgriffith$elm_ui$Element$Border$widthEach = function (_v0) {
 			bottom,
 			left));
 };
-var $author$project$Main$viewCommands = function (onEdit) {
+var $author$project$Main$viewCommands = function (commands) {
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		_List_fromArray(
@@ -13740,24 +13740,26 @@ var $author$project$Main$viewCommands = function (onEdit) {
 				$mdgriffith$elm_ui$Element$Border$color(
 				A3($mdgriffith$elm_ui$Element$rgb255, 145, 145, 145))
 			]),
-		_List_fromArray(
-			[
-				A2(
-				$mdgriffith$elm_ui$Element$Input$button,
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$Font$size(14),
-						$mdgriffith$elm_ui$Element$Font$family(
-						_List_fromArray(
-							[
-								$mdgriffith$elm_ui$Element$Font$typeface('system-ui')
-							]))
-					]),
-				{
-					label: $mdgriffith$elm_ui$Element$text('Edit'),
-					onPress: $elm$core$Maybe$Just(onEdit)
-				})
-			]));
+		A2(
+			$elm$core$List$map,
+			function (command) {
+				return A2(
+					$mdgriffith$elm_ui$Element$Input$button,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$Font$size(14),
+							$mdgriffith$elm_ui$Element$Font$family(
+							_List_fromArray(
+								[
+									$mdgriffith$elm_ui$Element$Font$typeface('system-ui')
+								]))
+						]),
+					{
+						label: command.label,
+						onPress: $elm$core$Maybe$Just(command.onPress)
+					});
+			},
+			commands));
 };
 var $mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
 	return {$: 'AlignY', a: a};
@@ -23018,7 +23020,8 @@ var $author$project$Instructions$viewInstructions = F4(
 				$mdgriffith$elm_ui$Element$column,
 				_List_fromArray(
 					[
-						$mdgriffith$elm_ui$Element$spacing(20)
+						$mdgriffith$elm_ui$Element$spacing(20),
+						$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
 					]),
 				A2(
 					$elm$core$List$append,
@@ -23043,28 +23046,26 @@ var $author$project$Instructions$viewInstructions = F4(
 		}
 	});
 var $author$project$Main$view = function (model) {
-	var viewFull = model.viewFull;
+	var instructions = model.instructions;
+	var enableFullView = model.viewFull;
+	var enableEdit = model.edit;
+	var editor = {enableMonaco: false, model: model};
 	return {
-		body: viewFull ? _List_fromArray(
+		body: _List_fromArray(
 			[
 				$author$project$Layout$view(
 				{
-					content: $author$project$Instructions$viewFullPage(model.instructions),
-					left_detail: $author$project$Main$viewCodeEditor(
-						{enableMonaco: false, model: model}),
-					right_detail: $author$project$Main$viewCommands($author$project$Main$Edit),
-					shrinkContent: model.edit,
-					title: ''
-				})
-			]) : _List_fromArray(
-			[
-				$author$project$Layout$view(
-				{
-					content: A4($author$project$Instructions$viewInstructions, $author$project$Main$onNext, $author$project$Main$ViewFull, $author$project$Main$Done, model.instructions),
-					left_detail: $author$project$Main$viewCodeEditor(
-						{enableMonaco: false, model: model}),
-					right_detail: $author$project$Main$viewCommands($author$project$Main$Edit),
-					shrinkContent: model.edit,
+					content: enableFullView ? $author$project$Instructions$viewFullPage(instructions) : A4($author$project$Instructions$viewInstructions, $author$project$Main$onNext, $author$project$Main$ViewFull, $author$project$Main$Done, instructions),
+					left_detail: $author$project$Main$viewCodeEditor(editor),
+					right_detail: $author$project$Main$viewCommands(
+						_List_fromArray(
+							[
+								{
+								label: $mdgriffith$elm_ui$Element$text('Edit'),
+								onPress: $author$project$Main$Edit
+							}
+							])),
+					shrinkContent: enableEdit,
 					title: ''
 				})
 			]),
