@@ -3,33 +3,19 @@ port module Main exposing (..)
 import Browser
 import Element exposing (..)
 import Element.Input
+import Editor exposing (viewMonacoEditor, viewMultilineEditor)
 import Html exposing (..)
 import Http
 import Instructions
 import Layout
-
-
-main : Program (Maybe String) Model Msg
-main =
-    Browser.document
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
-
--- MODEL
-
 
 type alias Model =
     { editor : Editor
     , instructions : String
     }
 
-
 type alias Editor =
     { text : String, language : String, saved : String }
-
 
 type Msg
     = ResetText
@@ -39,6 +25,14 @@ type Msg
     | GotLab (Result Http.Error String)
     | Done
 
+main : Program (Maybe String) Model Msg
+main =
+    Browser.document
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }
 
 init : (Maybe String) -> ( Model, Cmd Msg )
 init maybelab =
@@ -88,13 +82,9 @@ update msg model =
 -- SUBSCRIPTIONS
 -- If Monaco is enabled, this will allow us to pipe commands to the editor
 
-
 port dispatchEditorCmd : String -> Cmd msg
 
-
-
 -- This is called by monaco to pass the current value of it's editor
-
 
 port saveContent : (String -> msg) -> Sub msg
 
@@ -123,6 +113,32 @@ view model =
             }
         ]
     }
+
+viewCodeEditor : { enableMonaco : Bool, model : Model } -> Element Msg
+viewCodeEditor settings =
+    let
+        enableMonaco =
+            settings.enableMonaco
+
+        model =
+            settings.model
+
+        editor =
+            { language = model.editor.language
+            , text = model.editor.text
+            }
+    in
+    if enableMonaco then
+        Element.column [ width fill, height fill ]
+            [ Element.Input.button []
+                { onPress = Just (Dispatch "save")
+                , label = Element.text "Render"
+                }
+            ,viewMonacoEditor editor
+            ]
+
+    else
+        viewMultilineEditor Save editor
 
 onNext : List String -> Maybe Msg
 onNext remaining =

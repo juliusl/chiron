@@ -12,7 +12,7 @@ use poem::{
     Route,
 };
 
-/// Lab component hosts a runtime for browsing .runmd in the design folder
+/// Lab component hosts a portal for browsing .runmd in the design folder
 #[derive(Default)]
 pub struct Lab;
 
@@ -46,9 +46,10 @@ impl Plugin<ThunkContext> for Lab {
                             eprintln!("{log}");
 
                             let runtime = create_runtime(project);
-                            let mut extension = Host(RuntimeEditor::new(runtime));
+                            let runtime_editor = RuntimeEditor::new(runtime);
+                            let mut extension = Host(runtime_editor);
 
-                            let block_symbol = "lab";
+                            let block_symbol = Lab::symbol();
                             Runtime::start_with(&mut extension, block_symbol, &tc, cancel_source);
                         }
                     }

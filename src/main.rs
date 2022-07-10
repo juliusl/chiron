@@ -50,24 +50,35 @@ fn main() {
 
 fn create_runtime(project: Project) -> Runtime {
     let mut runtime = Runtime::new(project);
+
+    // --- lifec plugins ---
+    // Filesystem plugins
     runtime.install::<Call, WriteFile>();
     runtime.install::<Call, OpenFile>();
-    runtime.install::<Call, Runtime>();
     runtime.install::<Call, OpenDir>();
-    runtime.install::<Call, Process>();
-    runtime.install::<Call, Remote>();
+    // Utility plugins
     runtime.install::<Call, Println>();
     runtime.install::<Call, Clear>();
     runtime.install::<Call, Timer>();
-    // Installs a tool
-    runtime.install::<Call, Install>();
-    // Cloud-init tools
-    runtime.install::<Call, MakeMime>();
-    runtime.install::<Call, ReadMime>();
+    // System plugins
+    runtime.install::<Call, Process>();
+    runtime.install::<Call, Remote>();
+    runtime.install::<Call, Runtime>();
+
+    // --- lifec_poem plugins ---
     // Hosting code
     runtime.install::<Call, StaticFiles>();
-    runtime.install::<Call, Lab>();
     runtime.install::<Call, AppHost<Lab>>();
+
+    // --- chiron plugins ---
+    // Install plugin
+    runtime.install::<Call, Install>();
+    // Cloud-init plugins
+    runtime.install::<Call, MakeMime>();
+    runtime.install::<Call, ReadMime>();
+    runtime.install::<Call, Lab>();
+
+    // Cloud-init configs
     runtime.add_config(Config("cloud_init", |tc| {
         cloud_init::env(tc);
     }));
@@ -82,8 +93,8 @@ fn create_runtime(project: Project) -> Runtime {
         cloud_init::env(tc);
     }));
 
+    // common default configs
     runtime.add_config(Config("empty", |_| {}));
-
     runtime
 }
 
