@@ -109,7 +109,49 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 
 <body>
 	<main></main>
+    <script src="https://unpkg.com/requirejs"></script>
+	<script src="https://unpkg.com/monaco-editor@0.33.0/min/vs/loader.js"></script>
 	<script>
+		require.config({{ paths: {{ 'vs': 'https://unpkg.com/monaco-editor@0.33.0/min/vs' }} }});
+		window.MonacoEnvironment = {{ getWorkerUrl: () => proxy }};
+
+		let proxy = URL.createObjectURL(new Blob(
+		[`
+	  		self.MonacoEnvironment = {{
+		  		baseUrl: 'https://unpkg.com/monaco-editor@0.33.0/min/'
+	  		}};
+	  		importScripts('https://unpkg.com/monaco-editor@0.33.0/min/vs/base/worker/workerMain.js');
+		`], 
+	  	 {{ 
+			type: 'text/javascript' 
+		}}));
+		
+		customElements.define('code-editor', class extends HTMLElement {{
+			constructor() {{ super(); }}
+			connectedCallback() {{ this.init(); }}
+			attributeChangedCallback() {{ this.init(); }}
+			static get observedAttributes() {{ return ['value', 'language']; }}
+
+			init() {{
+				this.style.display = "inline-block";
+				this.style.height = "100%";
+				this.style.width = "100%";
+				require(["vs/editor/editor.main"], this.create.bind(this));
+			}}
+
+			create() {{
+				const value = this.getAttribute('value');
+				const language = this.getAttribute('language');
+				if (this.editor === undefined) {{
+					this.editor = monaco.editor.create(this, {{ value: value, language: language, theme: 'vs-dark' }});
+				}} else {{
+					this.editor.getModel().setValue(value);
+					monaco.editor.setModelLanguage(this.editor.getModel(), language);
+				}}
+				this.editor.layout();
+			}}
+		}});
+
 		var app = Elm.Main.init({{ 
             node: document.querySelector('main'),
             flags: '{lab_name}'
