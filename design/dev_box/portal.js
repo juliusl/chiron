@@ -6516,6 +6516,9 @@ var $author$project$Main$update = F2(
 				}
 		}
 	});
+var $author$project$Main$Dispatch = function (a) {
+	return {$: 'Dispatch', a: a};
+};
 var $author$project$Main$Done = {$: 'Done'};
 var $author$project$Main$Edit = {$: 'Edit'};
 var $author$project$Main$ViewFull = {$: 'ViewFull'};
@@ -12482,9 +12485,6 @@ var $author$project$Layout$view = function (model) {
 					$author$project$Layout$viewFooter(model)
 				])));
 };
-var $author$project$Main$Dispatch = function (a) {
-	return {$: 'Dispatch', a: a};
-};
 var $mdgriffith$elm_ui$Internal$Model$Button = {$: 'Button'};
 var $mdgriffith$elm_ui$Internal$Model$Describe = function (a) {
 	return {$: 'Describe', a: a};
@@ -13673,31 +13673,31 @@ var $author$project$Editor$viewMultilineEditor = F2(
 				text: model.text
 			});
 	});
-var $author$project$Main$viewCodeEditor = function (settings) {
-	var visible = settings.model.edit;
-	var model = settings.model;
-	var enableMonaco = settings.enableMonaco;
-	var editor = {language: model.editor.language, text: model.editor.text};
-	return visible ? (enableMonaco ? A2(
-		$mdgriffith$elm_ui$Element$column,
-		_List_fromArray(
-			[
-				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-				$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
-			]),
-		_List_fromArray(
-			[
-				A2(
-				$mdgriffith$elm_ui$Element$Input$button,
-				_List_Nil,
-				{
-					label: $mdgriffith$elm_ui$Element$text('Render'),
-					onPress: $elm$core$Maybe$Just(
-						$author$project$Main$Dispatch('save'))
-				}),
-				$author$project$Editor$viewMonacoEditor(editor)
-			])) : A2($author$project$Editor$viewMultilineEditor, $author$project$Main$Save, editor)) : $mdgriffith$elm_ui$Element$text('');
-};
+var $author$project$Editor$viewCodeEditor = F3(
+	function (msgs, settings, editor) {
+		var visible = settings.visible;
+		var onSave = msgs.onSaveFallback;
+		var onDispatch = msgs.onSave;
+		var enableMonaco = settings.enableMonaco;
+		return visible ? (enableMonaco ? A2(
+			$mdgriffith$elm_ui$Element$column,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$mdgriffith$elm_ui$Element$Input$button,
+					_List_Nil,
+					{
+						label: $mdgriffith$elm_ui$Element$text('Render'),
+						onPress: $elm$core$Maybe$Just(onDispatch)
+					}),
+					$author$project$Editor$viewMonacoEditor(editor)
+				])) : A2($author$project$Editor$viewMultilineEditor, onSave, editor)) : $mdgriffith$elm_ui$Element$text('');
+	});
 var $mdgriffith$elm_ui$Element$Font$typeface = $mdgriffith$elm_ui$Internal$Model$Typeface;
 var $mdgriffith$elm_ui$Element$Border$widthXY = F2(
 	function (x, y) {
@@ -23049,14 +23049,19 @@ var $author$project$Main$view = function (model) {
 	var instructions = model.instructions;
 	var enableFullView = model.viewFull;
 	var enableEdit = model.edit;
-	var editor = {enableMonaco: false, model: model};
+	var editorSettings = {enableMonaco: false, visible: enableEdit};
+	var editorModel = {language: model.editor.language, text: model.editor.text};
+	var editorMessages = {
+		onSave: $author$project$Main$Dispatch('save'),
+		onSaveFallback: $author$project$Main$Save
+	};
 	return {
 		body: _List_fromArray(
 			[
 				$author$project$Layout$view(
 				{
 					content: enableFullView ? $author$project$Instructions$viewFullPage(instructions) : A4($author$project$Instructions$viewInstructions, $author$project$Main$onNext, $author$project$Main$ViewFull, $author$project$Main$Done, instructions),
-					left_detail: $author$project$Main$viewCodeEditor(editor),
+					left_detail: A3($author$project$Editor$viewCodeEditor, editorMessages, editorSettings, editorModel),
 					right_detail: $author$project$Layout$viewCommands(
 						_List_fromArray(
 							[
