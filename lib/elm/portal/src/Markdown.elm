@@ -137,11 +137,7 @@ code snippet =
         , Border.rounded 2
         , Element.paddingXY 5 3
         , Font.family
-            [ Font.external
-                { url = "https://fonts.googleapis.com/css?family=Source+Code+Pro"
-                , name = "Source Code Pro"
-                }
-            ]
+            [ Font.monospace ]
         ]
         (Element.text snippet)
 
@@ -158,11 +154,7 @@ formatCodeBlock content =
         , Element.htmlAttribute (Html.Attributes.style "white-space" "pre")
         , Element.padding 10
         , Font.family
-            [ Font.external
-                { url = "https://fonts.googleapis.com/css?family=Source+Code+Pro"
-                , name = "Source Code Pro"
-                }
-            ]
+            [ Font.monospace ]
         , Font.size 14
         ]
         content
@@ -182,7 +174,11 @@ parseCodeBlock details =
 
                         Err err ->
                             formatCodeBlock (Element.text err)
-
+                "runmd" ->
+                    formatCodeBlock (
+                        Element.row [] 
+                        [ Element.text details.body
+                        ])
                 _ ->
                     formatCodeBlock (Element.text details.body)
 
