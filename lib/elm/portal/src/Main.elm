@@ -39,7 +39,7 @@ main =
 
 -- Init
 
-init : (Maybe String) -> ( Model, Cmd Msg )
+init : ( Maybe String ) -> ( Model, Cmd Msg )
 init maybelab =
     let
         default = 
@@ -63,7 +63,7 @@ view model =
         instructions = 
             model.instructions
         editorMessages =
-            {onSave = (Dispatch "save"), onSaveFallback = Save}
+            { onSave = (Dispatch "save"), onSaveFallback = Save }
         editorSettings = 
             { enableMonaco = False, visible = enableEdit }
         editorModel = 
