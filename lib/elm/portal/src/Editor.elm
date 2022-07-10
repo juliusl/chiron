@@ -9,7 +9,7 @@ import Html.Attributes exposing (attribute)
 type alias Model =
     { text : String, language : String }
 
-viewCodeEditor : { onSave: msg, onSaveFallback: (String -> msg) } -> { enableMonaco : Bool, visible: Bool } -> { language : String, text : String } -> Element msg
+viewCodeEditor : { onDispatchSave: msg, onSave: (String -> msg) } -> { enableMonaco : Bool, visible: Bool } -> { language : String, text : String } -> Element msg
 viewCodeEditor msgs settings editor =
     let
         visible =
@@ -18,9 +18,9 @@ viewCodeEditor msgs settings editor =
         enableMonaco =
             settings.enableMonaco
         onDispatch =
-            msgs.onSave
+            msgs.onDispatchSave
         onSave =
-            msgs.onSaveFallback
+            msgs.onSave
     in
     if visible then 
             if enableMonaco then
@@ -31,7 +31,6 @@ viewCodeEditor msgs settings editor =
                     }
                 ,viewMonacoEditor editor
                 ]
-
         else
         viewMultilineEditor onSave editor
     else
@@ -43,8 +42,7 @@ viewMonacoEditor model =
         (node "code-editor"
             [ attribute "value" model.text
             , attribute "language" model.language
-            ]
-            []
+            ] [ ]
         )
 
 viewMultilineEditor : (String -> msg) -> Model -> Element msg

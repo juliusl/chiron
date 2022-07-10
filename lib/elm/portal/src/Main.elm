@@ -66,7 +66,7 @@ view model =
         instructions = 
             model.instructions
         editorMessages =
-            { onSave = ( Dispatch "save" ), onSaveFallback = Save }
+            { onDispatchSave = ( Dispatch "save" ), onSave = Save }
         editorSettings = 
             { enableMonaco = False, visible = enableEdit }
         editorModel = 
@@ -83,7 +83,7 @@ view model =
                 else
                     Instructions.viewInstructions onNext ViewFull Done instructions
             )
-            , left_detail = (viewCodeEditor editorMessages editorSettings editorModel)
+            , left_detail = ( viewCodeEditor editorMessages editorSettings editorModel )
             , right_detail = viewCommands [ { onPress = Edit, label = ( Element.text "Edit" ) } ]
             }
         ]
