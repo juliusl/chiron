@@ -2,15 +2,11 @@ port module Main exposing (..)
 
 import Browser
 import Element exposing (..)
-import Element.Input
-import Element.Border as Border
-import Element.Font as Font
-import Editor exposing (viewMonacoEditor, viewMultilineEditor)
+import Editor exposing (viewCodeEditor)
 import Html exposing (..)
 import Http
 import Instructions
-import Layout
-import Element.Font
+import Layout exposing (viewCommands, view)
 
 type alias Model =
     { editor : Editor
@@ -21,9 +17,6 @@ type alias Model =
 
 type alias Editor =
     { text : String, language : String, saved : String }
-
-type alias Command = 
-    { onPress : Msg, label: Element Msg }
 
 type Msg
     = ResetText
@@ -69,8 +62,12 @@ view model =
             model.edit
         instructions = 
             model.instructions
-        editor = 
-            { enableMonaco = False, model = model }
+        editorMessages =
+            {onSave = (Dispatch "save"), onSaveFallback = Save}
+        editorSettings = 
+            { enableMonaco = False, visible = enableEdit }
+        editorModel = 
+            { language = model.editor.language, text = model.editor.text }
     in
     { title = "Chiron lab portal"
     , body = [
@@ -83,62 +80,11 @@ view model =
                 else
                     Instructions.viewInstructions onNext ViewFull Done instructions
             )
-            , left_detail = viewCodeEditor editor
+            , left_detail = (viewCodeEditor editorMessages editorSettings editorModel)
             , right_detail = viewCommands [ { onPress = Edit, label = (Element.text "Edit")} ]
             }
         ]
     }
-
-viewCommands : (List Command) -> Element Msg 
-viewCommands =
-    (\commands ->
-                Element.column 
-            [ Border.widthEach { top = 0, right = 0, bottom = 0, left = 1 }
-            , paddingEach { top = 4, right = 8, left = 10, bottom = 4}
-            , Border.color (Element.rgb255 145 145 145)
-            ] (
-                commands |> List.map
-                    (\command -> 
-                    Element.Input.button 
-                    [ Element.Font.size 14
-                    , Element.Font.family [  Font.typeface "system-ui" ]
-                    ] { onPress = Just command.onPress, label = command.label }
-                    )
-            )
-    )
-
-
-viewCodeEditor : { enableMonaco : Bool, model : Model } -> Element Msg
-viewCodeEditor settings =
-    let
-        visible =
-            settings.model.edit
-
-        enableMonaco =
-            settings.enableMonaco
-
-        model =
-            settings.model
-
-        editor =
-            { language = model.editor.language
-            , text = model.editor.text
-            }
-    in
-    if visible then 
-            if enableMonaco then
-                Element.column [ width fill, height fill ]
-                [   Element.Input.button []
-                    { onPress = Just (Dispatch "save")
-                    , label = Element.text "Render"
-                    }
-                ,viewMonacoEditor editor
-                ]
-
-        else
-        viewMultilineEditor Save editor
-    else
-        Element.text ""
 
 onNext : List String -> Maybe Msg
 onNext remaining =

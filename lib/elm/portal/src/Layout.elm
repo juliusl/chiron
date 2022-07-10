@@ -1,7 +1,11 @@
-module Layout exposing (Model, view)
+module Layout exposing (Model, view, viewCommands)
 
 import Element exposing (..)
 import Element.Background as Background
+import Element.Border as Border
+import Element.Font as Font
+import Element.Font
+import Element.Input
 import Html exposing (Html)
 
 type alias Model msg =
@@ -12,6 +16,9 @@ type alias Model msg =
     , right_detail: Element msg
     }
 
+type alias Command msg = 
+    { onPress : msg, label: Element msg }
+
 view : Model msg -> Html msg
 view model =
     Element.layout [] <|
@@ -21,6 +28,23 @@ view model =
             , viewFooter model
             ]
 
+viewCommands : (List (Command msg)) -> Element msg 
+viewCommands =
+    (\commands ->
+                Element.column 
+            [ Border.widthEach { top = 0, right = 0, bottom = 0, left = 1 }
+            , paddingEach { top = 4, right = 8, left = 10, bottom = 4}
+            , Border.color (Element.rgb255 145 145 145)
+            ] (
+                commands |> List.map
+                    (\command -> 
+                    Element.Input.button 
+                    [ Element.Font.size 14
+                    , Element.Font.family [  Font.typeface "system-ui" ]
+                    ] { onPress = Just command.onPress, label = command.label }
+                    )
+            )
+    )
 
 viewHeader : Model msg -> Element msg
 viewHeader model =
