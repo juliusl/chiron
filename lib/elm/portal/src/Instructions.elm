@@ -1,25 +1,30 @@
-module Instructions exposing (viewInstructions, viewInstructionsFullPage)
+module Instructions exposing (viewInstructions, viewFullPage)
 
 import Element exposing (..)
 import Element.Input
 import Markdown
 
 
-viewInstructions : (List String -> Maybe msg) -> msg -> String -> Element msg
-viewInstructions onNext onDone markdown =
+viewInstructions : (List String -> Maybe msg) -> msg -> msg -> String -> Element msg
+viewInstructions onNext onViewFull onDone markdown =
     let
         root =
             parser (String.lines markdown)
     in
     case Markdown.viewMarkdown (String.join "\n" root.value.content) of
         Ok rendered ->
-            Element.column [ spacing 20 ] (List.append rendered [ viewButton onNext onDone root.remaining ])
+            Element.column [ spacing 20 ] (List.append rendered [ 
+                Element.row [ width fill ] 
+                    [ viewButton onNext onDone root.remaining 
+                    , viewFullButton onViewFull
+                    ]
+            ])
 
         Err err ->
             Element.text err
 
-viewInstructionsFullPage :  String -> Element msg
-viewInstructionsFullPage markdown = 
+viewFullPage :  String -> Element msg
+viewFullPage markdown = 
  case Markdown.viewMarkdown markdown of
         Ok rendered ->
             Element.column [ spacing 20 ] rendered
@@ -34,6 +39,9 @@ viewButton onNext onDone remaining =
     else
         Element.Input.button [] { onPress = onNext remaining, label = Element.text "Next" }
 
+viewFullButton : msg -> Element msg 
+viewFullButton onViewFull = 
+    Element.Input.button [ alignRight ] { onPress = Just onViewFull, label = Element.text "View full page" }
 
 type alias Header =
     { header : String

@@ -12,6 +12,7 @@ import Layout
 type alias Model =
     { editor : Editor
     , instructions : String
+    , viewFull : Bool
     }
 
 type alias Editor =
@@ -22,6 +23,7 @@ type Msg
     | Dispatch String
     | Save String
     | Instructions String
+    | ViewFull
     | GotLab (Result Http.Error String)
     | Done
 
@@ -34,11 +36,13 @@ main =
         , subscriptions = subscriptions
         }
 
+-- Init
+
 init : (Maybe String) -> ( Model, Cmd Msg )
 init maybelab =
     let
         default = 
-            Model { text = "", language = "markdown", saved = "" } ""
+            Model { text = "", language = "markdown", saved = "" } "" False
     in
     case maybelab  of
         Just lab -> 
@@ -46,72 +50,34 @@ init maybelab =
         Nothing -> 
             (default, getLab "" )
 
--- UPDATE
-
-update : Msg -> Model -> ( Model, Cmd msg )
-update msg model =
-    let
-        editor =
-            model.editor
-    in
-    case msg of
-        ResetText ->
-            ( { model | editor = { editor | text = editor.saved } }, Cmd.none )
-
-        Save content ->
-            ( { model | editor = { editor | text = content, saved = content }, instructions = content }, Cmd.none )
-
-        Dispatch cmd ->
-            ( model, dispatchEditorCmd cmd )
-
-        Instructions instructions ->
-            ( { model | instructions = instructions }, Cmd.none )
-
-        Done ->
-            ( { model | instructions = model.editor.text }, Cmd.none )
-        
-        GotLab result -> 
-            case result of 
-                Ok lab -> 
-                    ({ model | editor = { editor | text = lab }, instructions = lab }, Cmd.none )
-                Err _ -> 
-                    (model, Cmd.none)
-
-
-
--- SUBSCRIPTIONS
--- If Monaco is enabled, this will allow us to pipe commands to the editor
-
-port dispatchEditorCmd : String -> Cmd msg
-
--- This is called by monaco to pass the current value of it's editor
-
-port saveContent : (String -> msg) -> Sub msg
-
-
-subscriptions : Model -> Sub Msg
-subscriptions _ =
-    saveContent Save
-
 -- VIEW
 
 view : Model -> Browser.Document Msg
 view model =
+    let
+        viewFull =
+            model.viewFull
+    in
     { title = "Chiron lab portal"
-    , body =
+    , body = (
+        if viewFull then
         [ 
-            -- Layout.view
-            -- { title = "Editor"
-            -- , content = viewCodeEditor { enableMonaco = True, model = model }
-            -- , detail = Instructions.viewInstructions onNext Done model.instructions
-            -- },
             Layout.view
             { title = ""
-            , content = Instructions.viewInstructionsFullPage model.instructions
+            , content = Instructions.viewFullPage model.instructions
             , right_detail = Element.text ""
             , left_detail = Element.text ""
             }
         ]
+        else 
+        [
+            Layout.view
+            { title = ""
+            , content = Instructions.viewInstructions onNext ViewFull Done model.instructions
+            , right_detail = Element.text ""
+            , left_detail = Element.text ""
+            }
+        ])
     }
 
 viewCodeEditor : { enableMonaco : Bool, model : Model } -> Element Msg
@@ -147,29 +113,54 @@ onNext remaining =
     else
         Just (Instructions (String.join "\n" remaining))
 
-sampleLab : String
-sampleLab =
-    """
-# Lab - Setup a dev-box 
-```yaml
-id: "devbox-setup-2"
-display_name: "Devbox Setup"
-description: "Learn how to setup your own devbox"
-depends_on:
-- kind
-tools:
-- az_cli:
-  - az vm create
-```
-## Generate an ssh key
-```yaml
-requires:
-- id_rsa_pub:
-tools:
-- bash:
-  - ssh-keygen
-```
-"""
+-- UPDATE
+
+update : Msg -> Model -> ( Model, Cmd msg )
+update msg model =
+    let
+        editor =
+            model.editor
+    in
+    case msg of
+        ResetText ->
+            ( { model | editor = { editor | text = editor.saved } }, Cmd.none )
+
+        Save content ->
+            ( { model | editor = { editor | text = content, saved = content }, instructions = content }, Cmd.none )
+
+        Dispatch cmd ->
+            ( model, dispatchEditorCmd cmd )
+
+        Instructions instructions ->
+            ( { model | instructions = instructions }, Cmd.none )
+
+        ViewFull -> 
+            ( { model | editor = { editor | text = editor.saved }, instructions = model.editor.text, viewFull = True }, Cmd.none )
+
+        Done ->
+            ( { model | instructions = model.editor.text }, Cmd.none )
+        
+        GotLab result -> 
+            case result of 
+                Ok lab -> 
+                    ({ model | editor = { editor | text = lab }, instructions = lab }, Cmd.none )
+                Err _ -> 
+                    (model, Cmd.none)
+
+
+-- SUBSCRIPTIONS
+-- If Monaco is enabled, this will allow us to pipe commands to the editor
+port dispatchEditorCmd : String -> Cmd msg
+
+-- This is called by monaco to pass the current value of it's editor
+port saveContent : (String -> msg) -> Sub msg
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    saveContent Save
+
+-- API
 
 getLab : String -> Cmd Msg
 getLab lab = 

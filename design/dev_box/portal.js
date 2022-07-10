@@ -5604,9 +5604,9 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$document = _Browser_document;
-var $author$project$Main$Model = F2(
-	function (editor, instructions) {
-		return {editor: editor, instructions: instructions};
+var $author$project$Main$Model = F3(
+	function (editor, instructions, viewFull) {
+		return {editor: editor, instructions: instructions, viewFull: viewFull};
 	});
 var $author$project$Main$GotLab = function (a) {
 	return {$: 'GotLab', a: a};
@@ -6403,10 +6403,11 @@ var $author$project$Main$getLab = function (lab) {
 		});
 };
 var $author$project$Main$init = function (maybelab) {
-	var _default = A2(
+	var _default = A3(
 		$author$project$Main$Model,
 		{language: 'markdown', saved: '', text: ''},
-		'');
+		'',
+		false);
 	if (maybelab.$ === 'Just') {
 		var lab = maybelab.a;
 		return _Utils_Tuple2(
@@ -6470,6 +6471,18 @@ var $author$project$Main$update = F2(
 						model,
 						{instructions: instructions}),
 					$elm$core$Platform$Cmd$none);
+			case 'ViewFull':
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							editor: _Utils_update(
+								editor,
+								{text: editor.saved}),
+							instructions: model.editor.text,
+							viewFull: true
+						}),
+					$elm$core$Platform$Cmd$none);
 			case 'Done':
 				return _Utils_Tuple2(
 					_Utils_update(
@@ -6495,6 +6508,23 @@ var $author$project$Main$update = F2(
 				}
 		}
 	});
+var $author$project$Main$Done = {$: 'Done'};
+var $author$project$Main$ViewFull = {$: 'ViewFull'};
+var $author$project$Main$Instructions = function (a) {
+	return {$: 'Instructions', a: a};
+};
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $author$project$Main$onNext = function (remaining) {
+	return $elm$core$List$isEmpty(remaining) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+		$author$project$Main$Instructions(
+			A2($elm$core$String$join, '\n', remaining)));
+};
 var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
 	return {$: 'Text', a: a};
 };
@@ -10321,13 +10351,6 @@ var $mdgriffith$elm_ui$Internal$Model$finalizeNode = F6(
 				return html;
 		}
 	});
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $mdgriffith$elm_ui$Internal$Model$textElementClasses = $mdgriffith$elm_ui$Internal$Style$classes.any + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.text + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.widthContent + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.heightContent)))));
 var $mdgriffith$elm_ui$Internal$Model$textElement = function (str) {
@@ -21779,7 +21802,7 @@ try {
 	};
 } catch ($) {
 	throw 'Some top-level definitions from `Markdown` are causing infinite recursion:\n\n  ┌─────┐\n  │    renderer\n  │     ↓\n  │    defaultRenderer\n  │     ↓\n  │    codeBlock\n  │     ↓\n  │    parseCodeBlock\n  │     ↓\n  │    viewMarkdown\n  └─────┘\n\nThese errors are very tricky, so read https://elm-lang.org/0.19.1/bad-recursion to learn how to fix it!';}
-var $author$project$Instructions$viewInstructionsFullPage = function (markdown) {
+var $author$project$Instructions$viewFullPage = function (markdown) {
 	var _v0 = $author$project$Markdown$viewMarkdown(markdown);
 	if (_v0.$ === 'Ok') {
 		var rendered = _v0.a;
@@ -21795,13 +21818,315 @@ var $author$project$Instructions$viewInstructionsFullPage = function (markdown) 
 		return $mdgriffith$elm_ui$Element$text(err);
 	}
 };
-var $author$project$Main$view = function (model) {
+var $elm$core$String$lines = _String_lines;
+var $author$project$Instructions$headers = function (file) {
+	var indexed = A2($elm$core$List$indexedMap, $elm$core$Tuple$pair, file);
+	return A2(
+		$elm$core$List$filter,
+		function (_v0) {
+			var a = _v0.b;
+			return A2($elm$core$String$startsWith, '#', a);
+		},
+		indexed);
+};
+var $author$project$Instructions$selectInside = F2(
+	function (b, l) {
+		return A2(
+			$elm$core$List$filter,
+			function (_v0) {
+				var i = _v0.a;
+				return _Utils_cmp(i, b) < 0;
+			},
+			l);
+	});
+var $author$project$Instructions$parseHeader = F2(
+	function (b, l) {
+		var content = A2(
+			$elm$core$List$map,
+			$elm$core$Tuple$second,
+			A2(
+				$author$project$Instructions$selectInside,
+				b,
+				A2($elm$core$List$indexedMap, $elm$core$Tuple$pair, l)));
+		return {
+			content: content,
+			header: function () {
+				var _v0 = $elm$core$List$head(content);
+				if (_v0.$ === 'Just') {
+					var t = _v0.a;
+					return t;
+				} else {
+					return '';
+				}
+			}()
+		};
+	});
+var $author$project$Instructions$selectOutside = F2(
+	function (b, l) {
+		return A2(
+			$elm$core$List$filter,
+			function (_v0) {
+				var i = _v0.a;
+				return _Utils_cmp(i, b) > -1;
+			},
+			l);
+	});
+var $author$project$Instructions$parseRemaining = F2(
+	function (b, l) {
+		return A2(
+			$elm$core$List$map,
+			$elm$core$Tuple$second,
+			A2(
+				$author$project$Instructions$selectOutside,
+				b,
+				A2($elm$core$List$indexedMap, $elm$core$Tuple$pair, l)));
+	});
+var $author$project$Instructions$parser = function (l) {
+	var _v0 = function () {
+		var _v1 = $elm$core$List$head(
+			A2(
+				$elm$core$List$drop,
+				1,
+				$author$project$Instructions$headers(l)));
+		if (_v1.$ === 'Just') {
+			var v = _v1.a;
+			return v;
+		} else {
+			return _Utils_Tuple2(
+				$elm$core$List$length(l),
+				'');
+		}
+	}();
+	var b = _v0.a;
 	return {
-		body: _List_fromArray(
+		remaining: A2($author$project$Instructions$parseRemaining, b, l),
+		value: A2($author$project$Instructions$parseHeader, b, l)
+	};
+};
+var $mdgriffith$elm_ui$Internal$Model$Button = {$: 'Button'};
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
+var $mdgriffith$elm_ui$Element$Input$enter = 'Enter';
+var $mdgriffith$elm_ui$Element$Input$hasFocusStyle = function (attr) {
+	if (((attr.$ === 'StyleClass') && (attr.b.$ === 'PseudoSelector')) && (attr.b.a.$ === 'Focus')) {
+		var _v1 = attr.b;
+		var _v2 = _v1.a;
+		return true;
+	} else {
+		return false;
+	}
+};
+var $mdgriffith$elm_ui$Element$Input$focusDefault = function (attrs) {
+	return A2($elm$core$List$any, $mdgriffith$elm_ui$Element$Input$hasFocusStyle, attrs) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Internal$Model$htmlClass('focusable');
+};
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $mdgriffith$elm_ui$Element$Events$onClick = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onClick);
+var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$fail = _Json_fail;
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
+	return {$: 'MayPreventDefault', a: a};
+};
+var $elm$html$Html$Events$preventDefaultOn = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayPreventDefault(decoder));
+	});
+var $mdgriffith$elm_ui$Element$Input$onKeyLookup = function (lookup) {
+	var decode = function (code) {
+		var _v0 = lookup(code);
+		if (_v0.$ === 'Nothing') {
+			return $elm$json$Json$Decode$fail('No key matched');
+		} else {
+			var msg = _v0.a;
+			return $elm$json$Json$Decode$succeed(msg);
+		}
+	};
+	var isKey = A2(
+		$elm$json$Json$Decode$andThen,
+		decode,
+		A2($elm$json$Json$Decode$field, 'key', $elm$json$Json$Decode$string));
+	return $mdgriffith$elm_ui$Internal$Model$Attr(
+		A2(
+			$elm$html$Html$Events$preventDefaultOn,
+			'keydown',
+			A2(
+				$elm$json$Json$Decode$map,
+				function (fired) {
+					return _Utils_Tuple2(fired, true);
+				},
+				isKey)));
+};
+var $mdgriffith$elm_ui$Internal$Flag$cursor = $mdgriffith$elm_ui$Internal$Flag$flag(21);
+var $mdgriffith$elm_ui$Element$pointer = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$cursor, $mdgriffith$elm_ui$Internal$Style$classes.cursorPointer);
+var $mdgriffith$elm_ui$Element$Input$space = ' ';
+var $elm$html$Html$Attributes$tabindex = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'tabIndex',
+		$elm$core$String$fromInt(n));
+};
+var $mdgriffith$elm_ui$Element$Input$button = F2(
+	function (attrs, _v0) {
+		var onPress = _v0.onPress;
+		var label = _v0.label;
+		return A4(
+			$mdgriffith$elm_ui$Internal$Model$element,
+			$mdgriffith$elm_ui$Internal$Model$asEl,
+			$mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				$elm$core$List$cons,
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+				A2(
+					$elm$core$List$cons,
+					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
+					A2(
+						$elm$core$List$cons,
+						$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.contentCenterX + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.contentCenterY + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.seButton + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.noTextSelection)))))),
+						A2(
+							$elm$core$List$cons,
+							$mdgriffith$elm_ui$Element$pointer,
+							A2(
+								$elm$core$List$cons,
+								$mdgriffith$elm_ui$Element$Input$focusDefault(attrs),
+								A2(
+									$elm$core$List$cons,
+									$mdgriffith$elm_ui$Internal$Model$Describe($mdgriffith$elm_ui$Internal$Model$Button),
+									A2(
+										$elm$core$List$cons,
+										$mdgriffith$elm_ui$Internal$Model$Attr(
+											$elm$html$Html$Attributes$tabindex(0)),
+										function () {
+											if (onPress.$ === 'Nothing') {
+												return A2(
+													$elm$core$List$cons,
+													$mdgriffith$elm_ui$Internal$Model$Attr(
+														$elm$html$Html$Attributes$disabled(true)),
+													attrs);
+											} else {
+												var msg = onPress.a;
+												return A2(
+													$elm$core$List$cons,
+													$mdgriffith$elm_ui$Element$Events$onClick(msg),
+													A2(
+														$elm$core$List$cons,
+														$mdgriffith$elm_ui$Element$Input$onKeyLookup(
+															function (code) {
+																return _Utils_eq(code, $mdgriffith$elm_ui$Element$Input$enter) ? $elm$core$Maybe$Just(msg) : (_Utils_eq(code, $mdgriffith$elm_ui$Element$Input$space) ? $elm$core$Maybe$Just(msg) : $elm$core$Maybe$Nothing);
+															}),
+														attrs));
+											}
+										}()))))))),
+			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
+				_List_fromArray(
+					[label])));
+	});
+var $author$project$Instructions$viewButton = F3(
+	function (onNext, onDone, remaining) {
+		return $elm$core$List$isEmpty(remaining) ? A2(
+			$mdgriffith$elm_ui$Element$Input$button,
+			_List_Nil,
+			{
+				label: $mdgriffith$elm_ui$Element$text('Done'),
+				onPress: $elm$core$Maybe$Just(onDone)
+			}) : A2(
+			$mdgriffith$elm_ui$Element$Input$button,
+			_List_Nil,
+			{
+				label: $mdgriffith$elm_ui$Element$text('Next'),
+				onPress: onNext(remaining)
+			});
+	});
+var $mdgriffith$elm_ui$Internal$Model$Right = {$: 'Right'};
+var $mdgriffith$elm_ui$Element$alignRight = $mdgriffith$elm_ui$Internal$Model$AlignX($mdgriffith$elm_ui$Internal$Model$Right);
+var $author$project$Instructions$viewFullButton = function (onViewFull) {
+	return A2(
+		$mdgriffith$elm_ui$Element$Input$button,
+		_List_fromArray(
+			[$mdgriffith$elm_ui$Element$alignRight]),
+		{
+			label: $mdgriffith$elm_ui$Element$text('View full page'),
+			onPress: $elm$core$Maybe$Just(onViewFull)
+		});
+};
+var $author$project$Instructions$viewInstructions = F4(
+	function (onNext, onViewFull, onDone, markdown) {
+		var root = $author$project$Instructions$parser(
+			$elm$core$String$lines(markdown));
+		var _v0 = $author$project$Markdown$viewMarkdown(
+			A2($elm$core$String$join, '\n', root.value.content));
+		if (_v0.$ === 'Ok') {
+			var rendered = _v0.a;
+			return A2(
+				$mdgriffith$elm_ui$Element$column,
+				_List_fromArray(
+					[
+						$mdgriffith$elm_ui$Element$spacing(20)
+					]),
+				A2(
+					$elm$core$List$append,
+					rendered,
+					_List_fromArray(
+						[
+							A2(
+							$mdgriffith$elm_ui$Element$row,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+								]),
+							_List_fromArray(
+								[
+									A3($author$project$Instructions$viewButton, onNext, onDone, root.remaining),
+									$author$project$Instructions$viewFullButton(onViewFull)
+								]))
+						])));
+		} else {
+			var err = _v0.a;
+			return $mdgriffith$elm_ui$Element$text(err);
+		}
+	});
+var $author$project$Main$view = function (model) {
+	var viewFull = model.viewFull;
+	return {
+		body: viewFull ? _List_fromArray(
 			[
 				$author$project$Layout$view(
 				{
-					content: $author$project$Instructions$viewInstructionsFullPage(model.instructions),
+					content: $author$project$Instructions$viewFullPage(model.instructions),
+					left_detail: $mdgriffith$elm_ui$Element$text(''),
+					right_detail: $mdgriffith$elm_ui$Element$text(''),
+					title: ''
+				})
+			]) : _List_fromArray(
+			[
+				$author$project$Layout$view(
+				{
+					content: A4($author$project$Instructions$viewInstructions, $author$project$Main$onNext, $author$project$Main$ViewFull, $author$project$Main$Done, model.instructions),
 					left_detail: $mdgriffith$elm_ui$Element$text(''),
 					right_detail: $mdgriffith$elm_ui$Element$text(''),
 					title: ''

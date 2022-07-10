@@ -11,12 +11,12 @@ define dev_box lab  .symbol dev_box
 - For example, each row of `dev_box lab` would be available in the node editor for sequencing.
 ``` md
 ``` dev_box lab
-# Engine sequence
+- Engine sequence
 define setup         call .symbol setup_azure
 define setup_azure   call .symbol host
 define host          call
 
-# Properties
+- Properties
 add node_title      .text Dev box setup
 add description     .text Sets up local environment for building dev boxes.
 add project_src     .text design/dev_box/.runmd
