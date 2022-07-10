@@ -97,14 +97,13 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 
 <head>
 	<meta charset="UTF-8">
-	<title>Chiron Labs - {lab_name}</title>
 	<style>
 		body {{
 			padding: 0;
 			margin: 0;
 		}}
 	</style>
-	<script src=".run/{lab_name}/elm.min.js"></script>
+	<script src=".run/{lab_name}/portal.js"></script>
 </head>
 
 <body>

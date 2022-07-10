@@ -4,13 +4,12 @@ import Element exposing (..)
 import Element.Background as Background
 import Html exposing (Html)
 
-
 type alias Model msg =
     { title : String
     , content : Element msg
-    , detail : Element msg
+    , left_detail : Element msg
+    , right_detail: Element msg
     }
-
 
 view : Model msg -> Html msg
 view model =
@@ -28,7 +27,7 @@ viewHeader model =
         [ width fill
         , defaultPadding
         , height (px 80)
-        , Background.color (rgb255 0xA5 0xA5 0x8D)
+        , Background.color (rgb255 0x95 0xA5 0x8D)
         ]
         [ text model.title ]
 
@@ -50,8 +49,6 @@ viewFooter _ =
         ]
         []
 
-
-
 viewContent : Model msg -> Element msg
 viewContent model =
     column
@@ -61,7 +58,6 @@ viewContent model =
         ]
         [ model.content ]
 
-
 viewDetail : Model msg -> Element msg
 viewDetail model =
     column
@@ -69,16 +65,16 @@ viewDetail model =
         , height fill
         , defaultPadding
         ]
-        [ model.detail ]
+        [ model.left_detail ]
 
 viewGutter : Model msg -> Element msg
-viewGutter _ =
+viewGutter model =
     column
         [ width (fillPortion 1)
         , height fill
         , defaultPadding
         ]
-        [ ]
+        [ model.right_detail ]
 
 
 defaultPadding : Attribute msg

@@ -93,7 +93,7 @@ add address                      .text  localhost:3000
 ``` md
 ``` portal install 
 add work_dir                      .text   design/dev_box
-add file_src                      .text   lib/elm/portal/elm.min.js
+add file_src                      .text   lib/elm/portal/portal.js
 ``` 
 
 - This process compiles the elm app

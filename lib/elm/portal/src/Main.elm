@@ -1,7 +1,6 @@
 port module Main exposing (..)
 
 import Browser
-import Editor
 import Element exposing (..)
 import Element.Input
 import Html exposing (..)
@@ -43,11 +42,15 @@ type Msg
 
 init : (Maybe String) -> ( Model, Cmd Msg )
 init maybelab =
+    let
+        default = 
+            Model { text = "", language = "markdown", saved = "" } ""
+    in
     case maybelab  of
         Just lab -> 
-            ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, getLab lab )
+            (default, getLab lab )
         Nothing -> 
-            ( Model { text = sampleLab, language = "markdown", saved = "" } sampleLab, getLab "" )
+            (default, getLab "" )
 
 -- UPDATE
 
@@ -100,14 +103,11 @@ subscriptions : Model -> Sub Msg
 subscriptions _ =
     saveContent Save
 
-
-
 -- VIEW
-
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Chiron Portal"
+    { title = "Chiron lab portal"
     , body =
         [ 
             -- Layout.view
@@ -118,7 +118,8 @@ view model =
             Layout.view
             { title = ""
             , content = Instructions.viewInstructionsFullPage model.instructions
-            , detail = Element.text ""
+            , right_detail = Element.text ""
+            , left_detail = Element.text ""
             }
         ]
     }
@@ -129,33 +130,6 @@ onNext remaining =
         Nothing
     else
         Just (Instructions (String.join "\n" remaining))
-
-
-viewCodeEditor : { enableMonaco : Bool, model : Model } -> Element Msg
-viewCodeEditor settings =
-    let
-        enableMonaco =
-            settings.enableMonaco
-
-        model =
-            settings.model
-
-        editor =
-            { language = model.editor.language
-            , text = model.editor.text
-            }
-    in
-    if enableMonaco then
-        Element.column [ width fill, height fill ]
-            [ Element.Input.button []
-                { onPress = Just (Dispatch "save")
-                , label = Element.text "Render"
-                }
-            , Editor.viewMonacoEditor editor
-            ]
-
-    else
-        Editor.viewMultilineEditor Save editor
 
 sampleLab : String
 sampleLab =
@@ -181,7 +155,6 @@ tools:
 ```
 """
 
--- TODO hardcoded url for now
 getLab : String -> Cmd Msg
 getLab lab = 
     Http.get 
