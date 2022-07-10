@@ -11,6 +11,23 @@ import Element.Input as Input
 import List 
 import Dict
 
+type Msg
+    = Search Model | GotUsers (Result Http.Error (List (Dict.Dict String User)))
+    
+
+type alias User = 
+    { connected_registry_id: String
+    , user_id: String
+    , user_name: String
+    }
+type UserMap = 
+    Dict String (Decoder User)
+
+type alias Model = 
+    { query: String
+    , users: List (Dict.Dict String User)
+    }
+
 -- App
 
 main : Program () Model Msg
@@ -27,24 +44,10 @@ subscriptions _ =
     Sub.none
 
 init: () -> (Model, Cmd Msg)
-init _ = 
-    ( 
+init _ = (  
     { query = ""
     , users = [ Dict.singleton "test" (User "test" "test-id" "test-user-name") ]
-    }, 
-    getObjects )
-    
-type Msg
-    = Search Model | GotUsers (Result Http.Error (List (Dict.Dict String User)))
-    
-
-type alias User = 
-    { connected_registry_id: String
-    , user_id: String
-    , user_name: String
-    }
-type UserMap = 
-    Dict String (Decoder User)
+    }, getObjects )
 
 userDecoder : Decoder User
 userDecoder =
@@ -72,7 +75,6 @@ getObjects =
     , expect = Http.expectJson GotUsers userListDecoder
     }
 
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model = 
     case Debug.log "msg" msg of
@@ -84,11 +86,6 @@ update msg model =
                     ({ model | users = objs }, Cmd.none)
                 Err _ -> 
                     (model, Cmd.none)
-
-type alias Model = 
-    { query: String
-    , users: List (Dict.Dict String User)
-    }
 
 -- Styles
 dropShadow : Attr decorative msg
@@ -203,7 +200,7 @@ searchBox model =
     , label = Input.labelHidden "Search"
     , text = model.query
     , onChange = \new -> Search { model | query = new }
-    }  
+    }
 
 cards : Model -> List (Element msg)
 cards model = 

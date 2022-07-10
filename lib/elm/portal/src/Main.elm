@@ -16,7 +16,10 @@ type alias Model =
     }
 
 type alias Editor =
-    { text : String, language : String, saved : String }
+    { text : String
+    , language : String
+    , saved : String 
+    }
 
 type Msg
     = ResetText
@@ -25,10 +28,10 @@ type Msg
     | Instructions String
     | ViewFull
     | Edit
-    | GotLab (Result Http.Error String)
+    | GotLab ( Result Http.Error String )
     | Done
 
-main : Program (Maybe String) Model Msg
+main : Program ( Maybe String ) Model Msg
 main =
     Browser.document
         { init = init
@@ -47,9 +50,9 @@ init maybelab =
     in
     case maybelab  of
         Just lab -> 
-            (default, getLab lab )
+            ( default, getLab lab )
         Nothing -> 
-            (default, getLab "" )
+            ( default, getLab "" )
 
 -- VIEW
 
@@ -63,7 +66,7 @@ view model =
         instructions = 
             model.instructions
         editorMessages =
-            { onSave = (Dispatch "save"), onSaveFallback = Save }
+            { onSave = ( Dispatch "save" ), onSaveFallback = Save }
         editorSettings = 
             { enableMonaco = False, visible = enableEdit }
         editorModel = 
@@ -81,7 +84,7 @@ view model =
                     Instructions.viewInstructions onNext ViewFull Done instructions
             )
             , left_detail = (viewCodeEditor editorMessages editorSettings editorModel)
-            , right_detail = viewCommands [ { onPress = Edit, label = (Element.text "Edit")} ]
+            , right_detail = viewCommands [ { onPress = Edit, label = ( Element.text "Edit" ) } ]
             }
         ]
     }
@@ -91,7 +94,7 @@ onNext remaining =
     if List.isEmpty remaining then
         Nothing
     else
-        Just (Instructions (String.join "\n" remaining))
+        Just ( Instructions ( String.join "\n" remaining ) )
 
 -- UPDATE
 
@@ -126,9 +129,9 @@ update msg model =
         GotLab result -> 
             case result of 
                 Ok lab -> 
-                    ({ model | editor = { editor | text = lab, saved = lab }, instructions = lab }, Cmd.none )
+                    ( { model | editor = { editor | text = lab, saved = lab }, instructions = lab }, Cmd.none )
                 Err _ -> 
-                    (model, Cmd.none)
+                    ( model, Cmd.none )
 
 
 -- SUBSCRIPTIONS
@@ -136,7 +139,7 @@ update msg model =
 port dispatchEditorCmd : String -> Cmd msg
 
 -- This is called by monaco to pass the current value of it's editor
-port saveContent : (String -> msg) -> Sub msg
+port saveContent : ( String -> msg ) -> Sub msg
 
 
 subscriptions : Model -> Sub Msg
