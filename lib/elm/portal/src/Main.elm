@@ -130,6 +130,7 @@ update msg model =
             case result of 
                 Ok lab -> 
                     ( { model | editor = { editor | text = lab, saved = lab }, instructions = lab }, Cmd.none )
+                
                 Err _ -> 
                     ( model, Cmd.none )
 

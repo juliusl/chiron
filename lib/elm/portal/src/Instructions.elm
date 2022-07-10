@@ -4,6 +4,16 @@ import Element exposing (..)
 import Element.Input
 import Markdown
 
+type alias Header =
+    { header : String
+    , content : List String
+    }
+
+
+type alias ParseResult =
+    { value : Header
+    , remaining : List String
+    }
 
 viewInstructions : (List String -> Maybe msg) -> msg -> msg -> String -> Element msg
 viewInstructions onNext onViewFull onDone markdown =
@@ -28,6 +38,7 @@ viewFullPage markdown =
  case Markdown.viewMarkdown markdown of
         Ok rendered ->
             Element.column [ spacing 20 ] rendered
+
         Err err ->
             Element.text err
 
@@ -42,18 +53,6 @@ viewButton onNext onDone remaining =
 viewFullButton : msg -> Element msg 
 viewFullButton onViewFull = 
     Element.Input.button [ alignRight ] { onPress = Just onViewFull, label = Element.text "View full page" }
-
-type alias Header =
-    { header : String
-    , content : List String
-    }
-
-
-type alias ParseResult =
-    { value : Header
-    , remaining : List String
-    }
-
 
 headers : List String -> List ( Int, String )
 headers file =
