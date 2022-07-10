@@ -3,16 +3,20 @@ port module Main exposing (..)
 import Browser
 import Element exposing (..)
 import Element.Input
+import Element.Border as Border
+import Element.Font as Font
 import Editor exposing (viewMonacoEditor, viewMultilineEditor)
 import Html exposing (..)
 import Http
 import Instructions
 import Layout
+import Element.Font
 
 type alias Model =
     { editor : Editor
     , instructions : String
     , viewFull : Bool
+    , edit : Bool
     }
 
 type alias Editor =
@@ -24,6 +28,7 @@ type Msg
     | Save String
     | Instructions String
     | ViewFull
+    | Edit
     | GotLab (Result Http.Error String)
     | Done
 
@@ -42,7 +47,7 @@ init : (Maybe String) -> ( Model, Cmd Msg )
 init maybelab =
     let
         default = 
-            Model { text = "", language = "markdown", saved = "" } "" False
+            Model { text = "", language = "markdown", saved = "" } "" False False
     in
     case maybelab  of
         Just lab -> 
@@ -64,25 +69,42 @@ view model =
         [ 
             Layout.view
             { title = ""
+            , shrinkContent = model.edit
             , content = Instructions.viewFullPage model.instructions
-            , right_detail = Element.text ""
-            , left_detail = Element.text ""
+            , left_detail = viewCodeEditor { enableMonaco = False, model = model }
+            , right_detail = viewCommands Edit
             }
         ]
         else 
         [
             Layout.view
             { title = ""
+            , shrinkContent = model.edit
             , content = Instructions.viewInstructions onNext ViewFull Done model.instructions
-            , right_detail = Element.text ""
-            , left_detail = Element.text ""
+            , left_detail = viewCodeEditor { enableMonaco = False, model = model }
+            , right_detail = viewCommands Edit
             }
         ])
     }
 
+viewCommands : msg -> Element msg 
+viewCommands onEdit = 
+        Element.column 
+            [ Border.widthEach { top = 0, right = 0, bottom = 0, left = 1 }
+            , paddingEach { top = 4, right = 8, left = 10, bottom = 4}
+            , Border.color (Element.rgb255 145 145 145)
+            ] [ Element.Input.button 
+                    [ Element.Font.size 14
+                    , Element.Font.family [  Font.typeface "system-ui" ]
+                    ] { onPress = Just onEdit, label = Element.text "Edit" } 
+                    ]
+
 viewCodeEditor : { enableMonaco : Bool, model : Model } -> Element Msg
 viewCodeEditor settings =
     let
+        visible =
+            settings.model.edit
+
         enableMonaco =
             settings.enableMonaco
 
@@ -94,17 +116,20 @@ viewCodeEditor settings =
             , text = model.editor.text
             }
     in
-    if enableMonaco then
-        Element.column [ width fill, height fill ]
-            [ Element.Input.button []
-                { onPress = Just (Dispatch "save")
-                , label = Element.text "Render"
-                }
-            ,viewMonacoEditor editor
-            ]
+    if visible then 
+            if enableMonaco then
+                Element.column [ width fill, height fill ]
+                [   Element.Input.button []
+                    { onPress = Just (Dispatch "save")
+                    , label = Element.text "Render"
+                    }
+                ,viewMonacoEditor editor
+                ]
 
-    else
+        else
         viewMultilineEditor Save editor
+    else
+        Element.text ""
 
 onNext : List String -> Maybe Msg
 onNext remaining =
@@ -137,13 +162,16 @@ update msg model =
         ViewFull -> 
             ( { model | editor = { editor | text = editor.saved }, instructions = model.editor.text, viewFull = True }, Cmd.none )
 
+        Edit ->
+            ( { model | edit = (not model.edit) }, Cmd.none )
+
         Done ->
             ( { model | instructions = model.editor.text }, Cmd.none )
         
         GotLab result -> 
             case result of 
                 Ok lab -> 
-                    ({ model | editor = { editor | text = lab }, instructions = lab }, Cmd.none )
+                    ({ model | editor = { editor | text = lab, saved = lab }, instructions = lab }, Cmd.none )
                 Err _ -> 
                     (model, Cmd.none)
 

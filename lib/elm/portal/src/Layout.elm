@@ -6,6 +6,7 @@ import Html exposing (Html)
 
 type alias Model msg =
     { title : String
+    , shrinkContent: Bool
     , content : Element msg
     , left_detail : Element msg
     , right_detail: Element msg
@@ -52,7 +53,12 @@ viewFooter _ =
 viewContent : Model msg -> Element msg
 viewContent model =
     column
-        [ width (fillPortion 2)
+        [ width (fillPortion (
+            if model.shrinkContent then
+                1
+            else
+                2
+        ))
         , height fill
         , defaultPadding
         ]
@@ -61,7 +67,12 @@ viewContent model =
 viewDetail : Model msg -> Element msg
 viewDetail model =
     column
-        [ width (fillPortion 1)
+        [ width (fillPortion (
+            if model.shrinkContent then
+                3
+            else
+                1
+        ))
         , height fill
         , defaultPadding
         ]
