@@ -70,7 +70,7 @@ viewHeader model =
         let
             width =
                 if model.showWorkspace then
-                    px 2048
+                    (fill |> minimum  2048)
                 else 
                     fill
             height =
@@ -110,7 +110,7 @@ viewFooter model =
         let
             width =
                 if model.showWorkspace then
-                    px 2048
+                    (fill |> minimum  2048)
                 else 
                     fill
             height =
@@ -131,15 +131,11 @@ viewFooter model =
 viewContent : Model msg -> Element msg
 viewContent model =
     column
-        [ width
-            (fillPortion
-                (if model.showWorkspace then
-                    1
-
+        [ width (if model.showWorkspace then
+                    fill
                  else
-                    2
+                    fillPortion 3
                 )
-            )
         , height fill
         , defaultPadding
         ]
@@ -149,15 +145,11 @@ viewContent model =
 viewWorkspace : Model msg -> Element msg
 viewWorkspace model =
     column
-        [ width
-            (fillPortion
-                (if model.showWorkspace then
-                    3
-
+        [ width (if model.showWorkspace then
+                    fillPortion 3
                  else
-                    1
+                   fillPortion 1
                 )
-            )
         , height fill
         , defaultPadding
         ]
