@@ -1,3 +1,4 @@
+use lifec_hyper::HyperContext;
 use lifec_poem::{StaticFiles, AppHost};
 use lifec::{
     plugins::{Project, Clear, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote}, 
@@ -69,6 +70,11 @@ fn create_runtime(project: Project) -> Runtime {
     // -- Hosting code
     runtime.install::<Call, StaticFiles>();
     runtime.install::<Call, AppHost<Lab>>();
+    
+    // --- lifec_hyper plugins ---
+    // -- Client code
+    // this adds a "request" plugin
+    runtime.install::<Call, HyperContext>();
 
     // --- chiron plugins ---
     // -- Install plugin
