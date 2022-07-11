@@ -10,10 +10,10 @@ import Html exposing (Html)
 
 type alias Model msg =
     { title : String
-    , shrinkContent : Bool
+    , showWorkspace : Bool
     , content : Element msg
-    , left_detail : Element msg
-    , right_detail : Element msg
+    , workspace : Element msg
+    , actions : Element msg
     }
 
 
@@ -38,6 +38,7 @@ viewCommands =
             [ Border.widthEach { top = 0, right = 0, bottom = 0, left = 1 }
             , paddingEach { top = 4, right = 8, left = 10, bottom = 4 }
             , Border.color (Element.rgb255 145 145 145)
+            , spacing 20
             ]
             (commands
                 |> List.map
@@ -68,7 +69,7 @@ viewHeader : Model msg -> Element msg
 viewHeader model =
         let
             width =
-                if model.shrinkContent then
+                if model.showWorkspace then
                     px 2048
                 else 
                     fill
@@ -80,7 +81,7 @@ viewHeader model =
                 rgb255 0x75 0xA5 0x5D 
         in
          row ( ( ( ( ( headerStyle
-            <| model.shrinkContent )
+            <| model.showWorkspace )
             <| width )
             <| height )
             <| backgroundColor )
@@ -91,24 +92,24 @@ viewPage : Model msg -> Element msg
 viewPage model =
     let
         shrinkContent = 
-            model.shrinkContent
+            model.showWorkspace
     in
     row [ width fill, height fill, defaultSpacing, defaultPadding ]
         <| 
         if shrinkContent then 
-            [ viewGutter model
-            , viewDetail model
+            [ viewActions model
+            , viewWorkspace model
             , viewContent model ]
         else 
-            [ viewDetail model
+            [ viewWorkspace model
             , viewContent model
-            , viewGutter model ]
+            , viewActions model ]
 
 viewFooter : Model msg -> Element msg
 viewFooter model =
         let
             width =
-                if model.shrinkContent then
+                if model.showWorkspace then
                     px 2048
                 else 
                     fill
@@ -120,7 +121,7 @@ viewFooter model =
                 rgb255 0x75 0xA5 0x5D 
         in
          row ( ( ( ( ( headerStyle
-            <| model.shrinkContent )
+            <| model.showWorkspace )
             <| width )
             <| height )
             <| backgroundColor )
@@ -132,7 +133,7 @@ viewContent model =
     column
         [ width
             (fillPortion
-                (if model.shrinkContent then
+                (if model.showWorkspace then
                     1
 
                  else
@@ -145,12 +146,12 @@ viewContent model =
         [ model.content ]
 
 
-viewDetail : Model msg -> Element msg
-viewDetail model =
+viewWorkspace : Model msg -> Element msg
+viewWorkspace model =
     column
         [ width
             (fillPortion
-                (if model.shrinkContent then
+                (if model.showWorkspace then
                     3
 
                  else
@@ -160,17 +161,17 @@ viewDetail model =
         , height fill
         , defaultPadding
         ]
-        [ model.left_detail ]
+        [ model.workspace ]
 
 
-viewGutter : Model msg -> Element msg
-viewGutter model =
+viewActions : Model msg -> Element msg
+viewActions model =
     column
         [ width (fillPortion 1)
         , height fill
         , defaultPadding
         ]
-        [ model.right_detail ]
+        [ model.actions ]
 
 
 defaultPadding : Attribute msg

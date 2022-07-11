@@ -72,22 +72,27 @@ view model =
         editorModel = 
             { language = model.editor.language, text = model.editor.text }
     in
-    { title = "Chiron lab portal"
+    { title = "Chiron lab portal"  
     , body = [
           Layout.view
             { title = ""
-            , shrinkContent = enableEdit
+            , showWorkspace = enableEdit
             , content = (
                 if enableFullView then 
                     Instructions.viewFullPage instructions
                 else
                     Instructions.viewInstructions onNext ViewFull Done instructions
             )
-            , left_detail = ( viewCodeEditor editorMessages editorSettings editorModel )
-            , right_detail = viewCommands [ { onPress = Edit, label = ( Element.text "Edit" ) } ]
+            , workspace = ( viewCodeEditor editorMessages editorSettings editorModel )
+            , actions = viewCommands [ 
+                    { onPress = Edit, label = ( Element.text "Edit" ) } 
+                    -- TODO Add subcommands
+                    -- , { onPress = (Dispatch "save"), label = ( Element.text "Render content" ) }
+                ]
             }
         ]
     }
+    
 
 onNext : List String -> Maybe Msg
 onNext remaining =
