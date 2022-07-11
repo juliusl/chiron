@@ -1,10 +1,7 @@
-# The design lab portal
-
-
 # Getting started with runmd
 - Defining `default call` will enable chiron to bootstrap a runtime. 
 - To use this feature drop a directory containing a `.runmd` file into chiron.
-``` md
+``` runmd
 ``` default call
 define portal lab  .symbol portal
 ```
@@ -20,9 +17,10 @@ add node_title      .text Host lab portal
 add description     .text Builds and hosts the chiron portal
 add project_src     .text design/portal/.runmd
 ```
+
 - The above sequence is defined by adding `.symbol {engine_name}` after each `call` line.
 - In the editor `dev_box lab` would be represented by a single node with the title "Dev box setup".
-
+``` md
 ``` setup call
 define a_host           clear    .text   empty
 define b_host           process  .symbol compile_elm
@@ -36,6 +34,7 @@ define c_host           install  .symbol portal
 define d_host           app_host .symbol portal
 ```
 
+## Building portal code
 - This plugin definition uses the built-in process plugin to define compiling the elm code.
 - Note that the `current_dir` attribute is set for this particular process, which is required by the `elm` command. However, for most other cases this attribute does not need to be included. 
 ``` md
@@ -44,12 +43,18 @@ add command                 .text   elm make src/Main.elm --output portal.js
 add current_dir             .text   lib/elm/portal
 ```
 
+- To check if elm is installed, the expect plugin can be used to check the path
+``` md
+``` compile_elm expect
+define elm which            .text elm
+```
+
 - This takes the result of the `elm make` process and copies it to the work_dir of the repo.
 ``` md
 ``` portal install 
 add work_dir                      .text   design/portal
 add file_src                      .text   lib/elm/portal/portal.js
-``` 
+```
 
 - Last, a server to host the lab portal starts. `lab.rs` implements the `app_host` in this case, so most of the routes and api's are defined in that file.
 ``` md

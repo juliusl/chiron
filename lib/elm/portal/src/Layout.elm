@@ -54,88 +54,129 @@ viewCommands =
 
 headerStyle : Bool -> Length -> Length -> Color -> Color -> List (Attribute msg)
 headerStyle extend len h bg bgAlt =
-    (List.append [ width len
-    , defaultPadding
-    , height h
-    ] (if not extend then  
+    List.append
+        [ width len
+        , defaultPadding
+        , height h
+        ]
+        (if not extend then
             [ Background.color bg ]
-        else  
-           [ Background.gradient { 
-                angle = 0.25 * pi, 
-                steps = [ bg, bgAlt ]
-            }]))
+
+         else
+            [ Background.gradient
+                { angle = 0.25 * pi
+                , steps = [ bg, bgAlt ]
+                }
+            ]
+        )
+
 
 viewHeader : Model msg -> Element msg
 viewHeader model =
-        let
-            width =
-                if model.showWorkspace then
-                    (fill |> minimum  2048)
-                else 
-                    fill
-            height =
-                px 80
-            backgroundColor =
-                rgb255 0x95 0xA5 0x8D 
-            backgroundAltColor =
-                rgb255 0x75 0xA5 0x5D 
-        in
-         row ( ( ( ( ( headerStyle
-            <| model.showWorkspace )
-            <| width )
-            <| height )
-            <| backgroundColor )
-            <| backgroundAltColor )
-            [ text model.title ]
+    let
+        width =
+            if model.showWorkspace then
+                fill |> minimum 2048
+
+            else
+                fill
+
+        height =
+            px 80
+
+        backgroundColor =
+            rgb255 0x95 0xA5 0x8D
+
+        backgroundAltColor =
+            rgb255 0x75 0xA5 0x5D
+    in
+    row
+        (((((headerStyle <|
+                model.showWorkspace
+            )
+            <|
+                width
+           )
+           <|
+            height
+          )
+          <|
+            backgroundColor
+         )
+         <|
+            backgroundAltColor
+        )
+        [ text model.title ]
+
 
 viewPage : Model msg -> Element msg
 viewPage model =
     let
-        shrinkContent = 
+        shrinkContent =
             model.showWorkspace
     in
-    row [ width fill, height fill, defaultSpacing, defaultPadding ]
-        <| 
-        if shrinkContent then 
+    row [ width fill, height fill, defaultSpacing, defaultPadding ] <|
+        if shrinkContent then
             [ viewActions model
             , viewWorkspace model
-            , viewContent model ]
-        else 
+            , viewContent model
+            ]
+
+        else
             [ viewWorkspace model
             , viewContent model
-            , viewActions model ]
+            , viewActions model
+            ]
+
 
 viewFooter : Model msg -> Element msg
 viewFooter model =
-        let
-            width =
-                if model.showWorkspace then
-                    (fill |> minimum  2048)
-                else 
-                    fill
-            height =
-                px 100
-            backgroundColor =
-                rgb255 0x95 0xA5 0x8D 
-            backgroundAltColor =
-                rgb255 0x75 0xA5 0x5D 
-        in
-         row ( ( ( ( ( headerStyle
-            <| model.showWorkspace )
-            <| width )
-            <| height )
-            <| backgroundColor )
-            <| backgroundAltColor )
-            [ text model.title ]
+    let
+        width =
+            if model.showWorkspace then
+                fill |> minimum 2048
+
+            else
+                fill
+
+        height =
+            px 100
+
+        backgroundColor =
+            rgb255 0x95 0xA5 0x8D
+
+        backgroundAltColor =
+            rgb255 0x75 0xA5 0x5D
+    in
+    row
+        (((((headerStyle <|
+                model.showWorkspace
+            )
+            <|
+                width
+           )
+           <|
+            height
+          )
+          <|
+            backgroundColor
+         )
+         <|
+            backgroundAltColor
+        )
+        [ text model.title ]
+
 
 viewContent : Model msg -> Element msg
 viewContent model =
     column
-        [ width (if model.showWorkspace then
-                    fill
-                 else
-                    fillPortion 3
-                )
+        [ width
+            (if model.showWorkspace then
+                fill
+
+             else
+                fillPortion 3
+            )
         , height fill
         , defaultPadding
         ]
@@ -145,11 +186,13 @@ viewContent model =
 viewWorkspace : Model msg -> Element msg
 viewWorkspace model =
     column
-        [ width (if model.showWorkspace then
-                    fillPortion 3
-                 else
-                   fillPortion 1
-                )
+        [ width
+            (if model.showWorkspace then
+                fillPortion 3
+
+             else
+                fillPortion 1
+            )
         , height fill
         , defaultPadding
         ]

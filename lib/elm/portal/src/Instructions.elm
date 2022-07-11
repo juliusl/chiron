@@ -1,8 +1,9 @@
-module Instructions exposing (viewInstructions, viewFullPage)
+module Instructions exposing (viewFullPage, viewInstructions)
 
 import Element exposing (..)
 import Element.Input
 import Markdown
+
 
 type alias Header =
     { header : String
@@ -15,32 +16,37 @@ type alias ParseResult =
     , remaining : List String
     }
 
-viewInstructions : (List String -> Maybe msg) -> msg -> msg -> String -> Element msg
-viewInstructions onNext onViewFull onDone markdown =
+
+viewInstructions : (String -> msg) -> (List String -> Maybe msg) -> msg -> msg -> String -> Element msg
+viewInstructions onRunmd onNext onViewFull onDone markdown =
     let
         root =
             parser (String.lines markdown)
     in
-    case Markdown.viewMarkdown (String.join "\n" root.value.content) of
+    case Markdown.viewMarkdown onRunmd (String.join "\n" root.value.content) of
         Ok rendered ->
-            Element.column [ spacing 20, height fill ] (List.append rendered [ 
-                Element.row [ width fill  ] 
-                    [ viewButton onNext onDone root.remaining 
-                    , viewFullButton onViewFull
+            Element.column [ spacing 20, height fill ]
+                (List.append rendered
+                    [ Element.row [ width (fill |> minimum 800) ]
+                        [ viewButton onNext onDone root.remaining
+                        , viewFullButton onViewFull
+                        ]
                     ]
-            ])
+                )
 
         Err err ->
             Element.text err
 
-viewFullPage :  String -> Element msg
-viewFullPage markdown = 
- case Markdown.viewMarkdown markdown of
+
+viewFullPage : (String -> msg) -> String -> Element msg
+viewFullPage onRunmd markdown =
+    case Markdown.viewMarkdown onRunmd markdown of
         Ok rendered ->
             Element.column [ spacing 20 ] rendered
 
         Err err ->
             Element.text err
+
 
 viewButton : (List String -> Maybe msg) -> msg -> List String -> Element msg
 viewButton onNext onDone remaining =
@@ -50,9 +56,11 @@ viewButton onNext onDone remaining =
     else
         Element.Input.button [] { onPress = onNext remaining, label = Element.text "Next" }
 
-viewFullButton : msg -> Element msg 
-viewFullButton onViewFull = 
+
+viewFullButton : msg -> Element msg
+viewFullButton onViewFull =
     Element.Input.button [ alignRight ] { onPress = Just onViewFull, label = Element.text "View full page" }
+
 
 headers : List String -> List ( Int, String )
 headers file =
@@ -61,6 +69,7 @@ headers file =
             List.indexedMap Tuple.pair file
     in
     List.filter (\( _, a ) -> String.startsWith "#" a) indexed
+
 
 parser : List String -> ParseResult
 parser l =

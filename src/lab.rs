@@ -164,6 +164,10 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 					break;
 			}}
 		}});
+
+        app.ports.dispatchRunmd.subscribe(function (message) {{
+            console.log(message);
+        }})
 	</script>
 </body>
 </html>

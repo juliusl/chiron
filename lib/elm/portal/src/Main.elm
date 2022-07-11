@@ -1,12 +1,13 @@
 port module Main exposing (..)
 
 import Browser
-import Element exposing (..)
 import Editor exposing (viewCodeEditor)
+import Element exposing (..)
 import Html exposing (..)
 import Http
 import Instructions
-import Layout exposing (viewCommands, view)
+import Layout exposing (view, viewCommands)
+
 
 type alias Model =
     { editor : Editor
@@ -15,23 +16,27 @@ type alias Model =
     , edit : Bool
     }
 
+
 type alias Editor =
     { text : String
     , language : String
-    , saved : String 
+    , saved : String
     }
+
 
 type Msg
     = ResetText
     | Dispatch String
+    | DispatchRunmd String
     | Save String
     | Instructions String
     | ViewFull
     | Edit
-    | GotLab ( Result Http.Error String )
+    | GotLab (Result Http.Error String)
     | Done
 
-main : Program ( Maybe String ) Model Msg
+
+main : Program (Maybe String) Model Msg
 main =
     Browser.document
         { init = init
@@ -40,68 +45,91 @@ main =
         , subscriptions = subscriptions
         }
 
+
+
 -- Init
 
-init : ( Maybe String ) -> ( Model, Cmd Msg )
+
+init : Maybe String -> ( Model, Cmd Msg )
 init maybelab =
     let
-        default = 
+        default =
             Model { text = "", language = "markdown", saved = "" } "" False False
     in
-    case maybelab  of
-        Just lab -> 
+    case maybelab of
+        Just lab ->
             ( default, getLab lab )
-        Nothing -> 
+
+        Nothing ->
             ( default, getLab "" )
 
+
+
 -- VIEW
+
 
 view : Model -> Browser.Document Msg
 view model =
     let
         enableFullView =
             model.viewFull
-        enableEdit = 
+
+        enableEdit =
             model.edit
-        instructions = 
+
+        instructions =
             model.instructions
+
         editorMessages =
-            { onDispatchSave = ( Dispatch "save" ), onSave = Save }
-        editorSettings = 
+            { onDispatchSave = Dispatch "save", onSave = Save }
+
+        editorSettings =
             { enableMonaco = True, visible = enableEdit }
-        editorModel = 
+
+        editorModel =
             { language = model.editor.language, text = model.editor.text }
     in
-    { title = "Chiron lab portal"  
-    , body = [
-          Layout.view
+    { title = "Chiron lab portal"
+    , body =
+        [ Layout.view
             { title = ""
             , showWorkspace = enableEdit
-            , content = (
-                if enableFullView then 
-                    Instructions.viewFullPage instructions
+            , content =
+                if enableFullView then
+                    Instructions.viewFullPage onRunmd instructions
+
                 else
-                    Instructions.viewInstructions onNext ViewFull Done instructions
-            )
-            , workspace = ( viewCodeEditor editorMessages editorSettings editorModel )
-            , actions = viewCommands [ 
-                    { onPress = Edit, label = ( Element.text "Edit" ) } 
+                    Instructions.viewInstructions onRunmd onNext ViewFull Done instructions
+            , workspace = viewCodeEditor editorMessages editorSettings editorModel
+            , actions =
+                viewCommands
+                    [ { onPress = Edit, label = Element.text "Edit" }
+
                     -- TODO Add subcommands
                     -- , { onPress = (Dispatch "save"), label = ( Element.text "Render content" ) }
-                ]
+                    ]
             }
         ]
     }
-    
+
+
+onRunmd : String -> Msg
+onRunmd runmd =
+    DispatchRunmd runmd
+
 
 onNext : List String -> Maybe Msg
 onNext remaining =
     if List.isEmpty remaining then
         Nothing
+
     else
-        Just ( Instructions ( String.join "\n" remaining ) )
+        Just (Instructions (String.join "\n" remaining))
+
+
 
 -- UPDATE
+
 
 update : Msg -> Model -> ( Model, Cmd msg )
 update msg model =
@@ -119,44 +147,64 @@ update msg model =
         Dispatch cmd ->
             ( model, dispatchEditorCmd cmd )
 
+        DispatchRunmd runmd ->
+            ( model, dispatchRunmd runmd )
+
         Instructions instructions ->
             ( { model | instructions = instructions }, Cmd.none )
 
-        ViewFull -> 
+        ViewFull ->
             ( { model | editor = { editor | text = editor.saved }, instructions = model.editor.text, viewFull = True }, Cmd.none )
 
         Edit ->
-            ( { model | edit = (not model.edit) }, Cmd.none )
+            ( { model | edit = not model.edit }, Cmd.none )
 
         Done ->
             ( { model | instructions = model.editor.text }, Cmd.none )
-        
-        GotLab result -> 
-            case result of 
-                Ok lab -> 
+
+        GotLab result ->
+            case result of
+                Ok lab ->
                     ( { model | editor = { editor | text = lab, saved = lab }, instructions = lab }, Cmd.none )
-                
-                Err _ -> 
+
+                Err _ ->
                     ( model, Cmd.none )
+
 
 
 -- SUBSCRIPTIONS
 -- If Monaco is enabled, this will allow us to pipe commands to the editor
+
+
 port dispatchEditorCmd : String -> Cmd msg
 
+
+
 -- This is called by monaco to pass the current value of it's editor
-port saveContent : ( String -> msg ) -> Sub msg
+
+
+port saveContent : (String -> msg) -> Sub msg
+
+
+
+-- Dispatches runmd to the host
+
+
+port dispatchRunmd : String -> Cmd msg
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     saveContent Save
 
+
+
 -- API
 
+
 getLab : String -> Cmd Msg
-getLab lab = 
-    Http.get 
-    { url = String.concat [ "/lab/", lab ]
-    , expect = Http.expectString GotLab
-    }
+getLab lab =
+    Http.get
+        { url = String.concat [ "/lab/", lab ]
+        , expect = Http.expectString GotLab
+        }

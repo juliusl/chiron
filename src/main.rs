@@ -73,7 +73,7 @@ fn create_runtime(project: Project) -> Runtime {
     
     // --- lifec_hyper plugins ---
     // -- Client code
-    // this adds a "request" plugin
+    // this adds a "request" plugin to make https requests
     runtime.install::<Call, HyperContext>();
 
     // --- chiron plugins ---

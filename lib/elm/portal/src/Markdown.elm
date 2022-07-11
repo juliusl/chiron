@@ -4,28 +4,28 @@ import Element exposing (..)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
-import Element.Input as Input
+import Element.HexColor exposing (rgbCSSHex)
+import Element.Input as Input exposing (button)
 import Element.Region as Region
 import Html
 import Html.Attributes
-import Markdown.Block as Block exposing (ListItem(..), Task(..))
+import Markdown.Block as Block exposing (ListItem(..), Task(..), headingLevelToInt)
 import Markdown.Html
 import Markdown.Parser
 import Markdown.Renderer exposing (..)
-import Markdown.Block exposing (headingLevelToInt)
 
 
-viewMarkdown : String -> Result String (List (Element msg))
-viewMarkdown markdown =
+viewMarkdown : (String -> msg) -> String -> Result String (List (Element msg))
+viewMarkdown onRunmd markdown =
     markdown
         |> Markdown.Parser.parse
         |> Result.mapError (\error -> error |> List.map Markdown.Parser.deadEndToString |> String.join "\n")
-        |> Result.andThen (Markdown.Renderer.render renderer)
+        |> Result.andThen (Markdown.Renderer.render (renderer onRunmd))
 
 
-renderer : Markdown.Renderer.Renderer (Element msg)
-renderer =
-    defaultRenderer
+renderer : (String -> msg) -> Markdown.Renderer.Renderer (Element msg)
+renderer onRunmd =
+    defaultRenderer onRunmd
 
 
 
@@ -33,8 +33,8 @@ renderer =
 -- Default markdown renderer to elm-ui types
 
 
-defaultRenderer : Markdown.Renderer.Renderer (Element msg)
-defaultRenderer =
+defaultRenderer : (String -> msg) -> Markdown.Renderer.Renderer (Element msg)
+defaultRenderer onRunmd =
     { heading = heading
     , paragraph =
         Element.paragraph
@@ -75,15 +75,15 @@ defaultRenderer =
                 children
     , unorderedList =
         \items ->
-            Element.column 
-                [ Element.spacing 15 
+            Element.column
+                [ Element.spacing 15
                 , Font.size 16
                 ]
                 (items
                     |> List.map
                         (\(ListItem task children) ->
                             Element.paragraph [ Element.spacing 5 ]
-                                [Element.row
+                                [ Element.row
                                     [ Element.alignTop ]
                                     ((case task of
                                         IncompleteTask ->
@@ -95,8 +95,8 @@ defaultRenderer =
                                         NoTask ->
                                             Element.text "-"
                                      )
-                                     :: Element.text " "
-                                     :: children
+                                        :: Element.text " "
+                                        :: children
                                     )
                                 ]
                         )
@@ -124,7 +124,7 @@ defaultRenderer =
     , tableCell =
         \_ children ->
             Element.paragraph [] children
-    , codeBlock = codeBlock
+    , codeBlock = codeBlock onRunmd
     , codeSpan = code
     }
 
@@ -142,9 +142,9 @@ code snippet =
         (Element.text snippet)
 
 
-codeBlock : { body : String, language : Maybe String } -> Element msg
-codeBlock details =
-    parseCodeBlock details
+codeBlock : (String -> msg) -> { body : String, language : Maybe String } -> Element msg
+codeBlock onRunmd details =
+    parseCodeBlock onRunmd details
 
 
 formatCodeBlock : Element msg -> Element msg
@@ -160,25 +160,37 @@ formatCodeBlock content =
         content
 
 
-parseCodeBlock : { body : String, language : Maybe String } -> Element msg
-parseCodeBlock details =
+parseCodeBlock : (String -> msg) -> { body : String, language : Maybe String } -> Element msg
+parseCodeBlock onRunmd details =
     case details.language of
         Just lang ->
             case lang of
                 "yaml" ->
                     formatCodeBlock (Element.text "(TODO) Render a form from this yaml block")
+
                 "markdown" ->
-                    case viewMarkdown details.body of
+                    case viewMarkdown onRunmd details.body of
                         Ok rendered ->
                             Element.column [ Element.spacing 15 ] rendered
 
                         Err err ->
                             formatCodeBlock (Element.text err)
+
                 "runmd" ->
-                    formatCodeBlock (
-                        Element.row [] 
-                        [ Element.text details.body
-                        ])
+                    formatCodeBlock
+                        (Element.row
+                            [ Element.onLeft
+                                (button
+                                    [ Font.size 16
+                                    , Element.moveLeft 20.0
+                                    , padding 8
+                                    ]
+                                    { onPress = Just (onRunmd details.body), label = Element.text "Dispatch to chiron" }
+                                )
+                            ]
+                            [ Element.text details.body ]
+                        )
+
                 _ ->
                     formatCodeBlock (Element.text details.body)
 
@@ -189,20 +201,25 @@ parseCodeBlock details =
 heading : { level : Block.HeadingLevel, rawText : String, children : List (Element msg) } -> Element msg
 heading { level, rawText, children } =
     Element.paragraph
-        (  case level of
-        Block.H1 -> 
-            headingOne (headingLevelToInt level) rawText 
-        Block.H2 -> 
-            headingTwo (headingLevelToInt level) rawText 
-        _ -> 
-            [ Font.size 14
-            , Font.family [ Font.typeface "system-ui" ]
-            , Region.heading  (headingLevelToInt level)
-            , Element.htmlAttribute
-                (Html.Attributes.attribute "name" (rawTextToId rawText))
-            , Element.htmlAttribute
-                (Html.Attributes.id (rawTextToId rawText))
-            ]) children
+        (case level of
+            Block.H1 ->
+                headingOne (headingLevelToInt level) rawText
+
+            Block.H2 ->
+                headingTwo (headingLevelToInt level) rawText
+
+            _ ->
+                [ Font.size 14
+                , Font.family [ Font.typeface "system-ui" ]
+                , Region.heading (headingLevelToInt level)
+                , Element.htmlAttribute
+                    (Html.Attributes.attribute "name" (rawTextToId rawText))
+                , Element.htmlAttribute
+                    (Html.Attributes.id (rawTextToId rawText))
+                ]
+        )
+        children
+
 
 headingOne : Int -> String -> List (Attribute msg)
 headingOne level rawText =
@@ -215,6 +232,7 @@ headingOne level rawText =
     , Element.htmlAttribute
         (Html.Attributes.id (rawTextToId rawText))
     ]
+
 
 headingTwo : Int -> String -> List (Attribute msg)
 headingTwo level rawText =
