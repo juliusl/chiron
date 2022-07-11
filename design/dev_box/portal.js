@@ -12348,6 +12348,72 @@ var $mdgriffith$elm_ui$Element$padding = function (x) {
 			f));
 };
 var $author$project$Layout$defaultPadding = $mdgriffith$elm_ui$Element$padding(20);
+var $mdgriffith$elm_ui$Internal$Model$NoAttribute = {$: 'NoAttribute'};
+var $mdgriffith$elm_ui$Internal$Flag$bgGradient = $mdgriffith$elm_ui$Internal$Flag$flag(10);
+var $mdgriffith$elm_ui$Element$Background$gradient = function (_v0) {
+	var angle = _v0.angle;
+	var steps = _v0.steps;
+	if (!steps.b) {
+		return $mdgriffith$elm_ui$Internal$Model$NoAttribute;
+	} else {
+		if (!steps.b.b) {
+			var clr = steps.a;
+			return A2(
+				$mdgriffith$elm_ui$Internal$Model$StyleClass,
+				$mdgriffith$elm_ui$Internal$Flag$bgColor,
+				A3(
+					$mdgriffith$elm_ui$Internal$Model$Colored,
+					'bg-' + $mdgriffith$elm_ui$Internal$Model$formatColorClass(clr),
+					'background-color',
+					clr));
+		} else {
+			return A2(
+				$mdgriffith$elm_ui$Internal$Model$StyleClass,
+				$mdgriffith$elm_ui$Internal$Flag$bgGradient,
+				A3(
+					$mdgriffith$elm_ui$Internal$Model$Single,
+					'bg-grad-' + A2(
+						$elm$core$String$join,
+						'-',
+						A2(
+							$elm$core$List$cons,
+							$mdgriffith$elm_ui$Internal$Model$floatClass(angle),
+							A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$formatColorClass, steps))),
+					'background-image',
+					'linear-gradient(' + (A2(
+						$elm$core$String$join,
+						', ',
+						A2(
+							$elm$core$List$cons,
+							$elm$core$String$fromFloat(angle) + 'rad',
+							A2($elm$core$List$map, $mdgriffith$elm_ui$Internal$Model$formatColor, steps))) + ')')));
+		}
+	}
+};
+var $elm$core$Basics$pi = _Basics_pi;
+var $author$project$Layout$headerStyle = F5(
+	function (extend, len, h, bg, bgAlt) {
+		return A2(
+			$elm$core$List$append,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$width(len),
+					$author$project$Layout$defaultPadding,
+					$mdgriffith$elm_ui$Element$height(h)
+				]),
+			(!extend) ? _List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$Background$color(bg)
+				]) : _List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$Background$gradient(
+					{
+						angle: 0.25 * $elm$core$Basics$pi,
+						steps: _List_fromArray(
+							[bg, bgAlt])
+					})
+				]));
+	});
 var $mdgriffith$elm_ui$Internal$Model$Px = function (a) {
 	return {$: 'Px', a: a};
 };
@@ -12376,32 +12442,43 @@ var $mdgriffith$elm_ui$Element$row = F2(
 						attrs))),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
-var $author$project$Layout$viewFooter = function (_v0) {
+var $author$project$Layout$viewFooter = function (model) {
+	var width = model.shrinkContent ? $mdgriffith$elm_ui$Element$px(2048) : $mdgriffith$elm_ui$Element$fill;
+	var height = $mdgriffith$elm_ui$Element$px(100);
+	var backgroundColor = A3($mdgriffith$elm_ui$Element$rgb255, 149, 165, 141);
+	var backgroundAltColor = A3($mdgriffith$elm_ui$Element$rgb255, 117, 165, 93);
 	return A2(
 		$mdgriffith$elm_ui$Element$row,
+		A3(
+			$elm$core$Basics$apL,
+			A3(
+				$elm$core$Basics$apL,
+				$author$project$Layout$headerStyle(model.shrinkContent),
+				width,
+				height),
+			backgroundColor,
+			backgroundAltColor),
 		_List_fromArray(
 			[
-				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-				$author$project$Layout$defaultPadding,
-				$mdgriffith$elm_ui$Element$height(
-				$mdgriffith$elm_ui$Element$px(100)),
-				$mdgriffith$elm_ui$Element$Background$color(
-				A3($mdgriffith$elm_ui$Element$rgb255, 149, 165, 141))
-			]),
-		_List_Nil);
+				$mdgriffith$elm_ui$Element$text(model.title)
+			]));
 };
 var $author$project$Layout$viewHeader = function (model) {
+	var width = model.shrinkContent ? $mdgriffith$elm_ui$Element$px(2048) : $mdgriffith$elm_ui$Element$fill;
+	var height = $mdgriffith$elm_ui$Element$px(80);
+	var backgroundColor = A3($mdgriffith$elm_ui$Element$rgb255, 149, 165, 141);
+	var backgroundAltColor = A3($mdgriffith$elm_ui$Element$rgb255, 117, 165, 93);
 	return A2(
 		$mdgriffith$elm_ui$Element$row,
-		_List_fromArray(
-			[
-				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-				$author$project$Layout$defaultPadding,
-				$mdgriffith$elm_ui$Element$height(
-				$mdgriffith$elm_ui$Element$px(80)),
-				$mdgriffith$elm_ui$Element$Background$color(
-				A3($mdgriffith$elm_ui$Element$rgb255, 149, 165, 141))
-			]),
+		A3(
+			$elm$core$Basics$apL,
+			A3(
+				$elm$core$Basics$apL,
+				$author$project$Layout$headerStyle(model.shrinkContent),
+				width,
+				height),
+			backgroundColor,
+			backgroundAltColor),
 		_List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$text(model.title)
@@ -12450,6 +12527,7 @@ var $author$project$Layout$viewGutter = function (model) {
 			[model.right_detail]));
 };
 var $author$project$Layout$viewPage = function (model) {
+	var shrinkContent = model.shrinkContent;
 	return A2(
 		$mdgriffith$elm_ui$Element$row,
 		_List_fromArray(
@@ -12459,7 +12537,12 @@ var $author$project$Layout$viewPage = function (model) {
 				$author$project$Layout$defaultSpacing,
 				$author$project$Layout$defaultPadding
 			]),
-		_List_fromArray(
+		shrinkContent ? _List_fromArray(
+			[
+				$author$project$Layout$viewGutter(model),
+				$author$project$Layout$viewDetail(model),
+				$author$project$Layout$viewContent(model)
+			]) : _List_fromArray(
 			[
 				$author$project$Layout$viewDetail(model),
 				$author$project$Layout$viewContent(model),
@@ -12499,7 +12582,6 @@ var $elm$html$Html$Attributes$boolProperty = F2(
 	});
 var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
 var $mdgriffith$elm_ui$Element$Input$enter = 'Enter';
-var $mdgriffith$elm_ui$Internal$Model$NoAttribute = {$: 'NoAttribute'};
 var $mdgriffith$elm_ui$Element$Input$hasFocusStyle = function (attr) {
 	if (((attr.$ === 'StyleClass') && (attr.b.$ === 'PseudoSelector')) && (attr.b.a.$ === 'Focus')) {
 		var _v1 = attr.b;
@@ -12640,6 +12722,22 @@ var $mdgriffith$elm_ui$Element$Input$button = F2(
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
 				_List_fromArray(
 					[label])));
+	});
+var $mdgriffith$elm_ui$Internal$Model$Max = F2(
+	function (a, b) {
+		return {$: 'Max', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Element$maximum = F2(
+	function (i, l) {
+		return A2($mdgriffith$elm_ui$Internal$Model$Max, i, l);
+	});
+var $mdgriffith$elm_ui$Internal$Model$Min = F2(
+	function (a, b) {
+		return {$: 'Min', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Element$minimum = F2(
+	function (i, l) {
+		return A2($mdgriffith$elm_ui$Internal$Model$Min, i, l);
 	});
 var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $elm$core$Basics$always = F2(
@@ -13683,7 +13781,11 @@ var $author$project$Editor$viewCodeEditor = F3(
 			$mdgriffith$elm_ui$Element$column,
 			_List_fromArray(
 				[
-					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+					$mdgriffith$elm_ui$Element$width(
+					A2(
+						$mdgriffith$elm_ui$Element$maximum,
+						1080,
+						A2($mdgriffith$elm_ui$Element$minimum, 800, $mdgriffith$elm_ui$Element$fill))),
 					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
 				]),
 			_List_fromArray(
@@ -13842,7 +13944,6 @@ var $mdgriffith$elm_ui$Internal$Model$CenterX = {$: 'CenterX'};
 var $mdgriffith$elm_ui$Element$centerX = $mdgriffith$elm_ui$Internal$Model$AlignX($mdgriffith$elm_ui$Internal$Model$CenterX);
 var $mdgriffith$elm_ui$Internal$Model$CenterY = {$: 'CenterY'};
 var $mdgriffith$elm_ui$Element$centerY = $mdgriffith$elm_ui$Internal$Model$AlignY($mdgriffith$elm_ui$Internal$Model$CenterY);
-var $elm$core$Basics$pi = _Basics_pi;
 var $elm$core$Basics$degrees = function (angleInDegrees) {
 	return (angleInDegrees * $elm$core$Basics$pi) / 180;
 };
@@ -23043,7 +23144,7 @@ var $author$project$Main$view = function (model) {
 	var instructions = model.instructions;
 	var enableFullView = model.viewFull;
 	var enableEdit = model.edit;
-	var editorSettings = {enableMonaco: false, visible: enableEdit};
+	var editorSettings = {enableMonaco: true, visible: enableEdit};
 	var editorModel = {language: model.editor.language, text: model.editor.text};
 	var editorMessages = {
 		onDispatchSave: $author$project$Main$Dispatch('save'),

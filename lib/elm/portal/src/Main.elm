@@ -68,7 +68,7 @@ view model =
         editorMessages =
             { onDispatchSave = ( Dispatch "save" ), onSave = Save }
         editorSettings = 
-            { enableMonaco = False, visible = enableEdit }
+            { enableMonaco = True, visible = enableEdit }
         editorModel = 
             { language = model.editor.language, text = model.editor.text }
     in

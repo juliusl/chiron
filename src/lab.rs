@@ -170,6 +170,5 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 </html>
 "###
     );
-
     Html(html)
 }

@@ -24,7 +24,11 @@ viewCodeEditor msgs settings editor =
     in
     if visible then 
             if enableMonaco then
-                Element.column [ width fill, height fill ]
+                Element.column [ 
+                    width (fill 
+                        |> minimum 800
+                        |> maximum 1080
+                    ), height fill ]
                 [   Element.Input.button []
                     { onPress = Just onDispatch
                     , label = Element.text "Render"
