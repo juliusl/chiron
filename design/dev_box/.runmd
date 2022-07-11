@@ -1,32 +1,8 @@
-# The dev box lab runtime
-- Defining `default call` will enable chiron to bootstrap a runtime. 
-- To use this feature drop a directory containing a `.runmd` file into chiron.
-``` md
-``` default call
-define dev_box lab  .symbol dev_box
-``` 
-
-- This lab will prepare local environment, for building new dev boxes. In addition, this lab will launch and host a site for browsing documentation.
-- Dropping individual `.runmd` files into the tool will scan for all engines adding them to the runtime. 
-- For example, each row of `dev_box lab` would be available in the node editor for sequencing.
-``` md
-``` dev_box lab
-- Engine sequence
-define setup         call .symbol setup_azure
-define setup_azure   call .symbol host
-define host          call
-
-- Properties
-add node_title      .text Dev box setup
-add description     .text Sets up local environment for building dev boxes.
-add project_src     .text design/dev_box/.runmd
-```
-- The above sequence is defined by adding `.symbol {engine_name}` after each `call` line.
-- In the editor `dev_box lab` would be represented by a single node with the title "Dev box setup".
+# Building a dev box with cloud_init
 
 # Cloud-init components
 - These are different components that can be installed with cloud_init
-``` md
+```runmd
 ``` setup call
 add    node_title                           .text Setup dev box
 define accelerated-container-image install  .text cloud_init
@@ -50,7 +26,7 @@ define rustlang                    install  .text cloud_init
 # Setup for a devbox in an Azure environment
 - This engine include the enter/exit blocks for setting up a vm on Azure.
 - These parts need to be installed in a specific order, since cloud_init_enter add's some functions to overall `runcmd` script. 
-``` md
+``` runmd
 ``` setup_azure call 
 add    node_title                   .text Setup cloud_init enter
 define azure_enter         install  .text cloud_init_enter
@@ -62,9 +38,8 @@ define azure_exit          install  .text cloud_init_exit
 - `make_mime` formats the message with each `part` defined in the block.
 - The parts are combined into a mixed mime message and the output is written to the `user_data` file, specified by `file_dst`.
 - After this plugin completes, the next step would be use the generated `.run/cloud_init/user_data` file for deployment.
-``` md
-``` package make_mime 
-add    node_title           .text Sample User_data
+``` runmd
+``` package make_mime
 add    work_dir             .text .config/cloud_init
 add    file_dst             .text .run/cloud_init/user_data
 define a_enter        part  .text enter-azure.yml_jinja2
@@ -73,38 +48,4 @@ define c_golang       part  .text install-golang.yml_jinja2
 define d_docker       part  .text install-docker.yml_jinja2
 define e_exit         part  .text exit-azure.yml_jinja2
 ```
-
-# Hosting the lab portal
-- This sequence compiles the elm app, installs the output, and then starts a server to host the app and an api to fetch `.runmd` files.
-``` md
-``` host call
-define a_host           clear    .text   empty
-define b_host           process  .symbol compile_elm
-define c_host           install  .symbol portal
-define d_host           app_host .symbol dev_box
-```
-
-- This plugin definition uses the built-in process plugin to define compiling the elm code.
-- Note that the `current_dir` attribute is set for this particular process, which is required by the `elm` command. However, for most other cases this attribute does not need to be included. 
-``` md
-``` compile_elm process
-add command                 .text   elm make src/Main.elm --output portal.js
-add current_dir             .text   lib/elm/portal
-```
-
-- This takes the result of the `elm make` process and copies it to the work_dir of the repo.
-``` md
-``` portal install 
-add work_dir                      .text   design/dev_box
-add file_src                      .text   lib/elm/portal/portal.js
-``` 
-
-- Last, a server to host the lab portal starts. `lab.rs` implements the `app_host` in this case, so most of the routes and api's are defined in that file.
-``` md
-``` dev_box app_host
-add node_title                   .text  Host lab app_host
-add address                      .text  localhost:3000
-```
-
-
 

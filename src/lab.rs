@@ -49,8 +49,7 @@ impl Plugin<ThunkContext> for Lab {
                             let runtime_editor = RuntimeEditor::new(runtime);
                             let mut extension = Host::from(runtime_editor);
 
-                            let block_symbol = Lab::symbol();
-                            Runtime::start_with(&mut extension, block_symbol, &tc, cancel_source);
+                            Runtime::start_with(&mut extension, Lab::symbol(), &tc, cancel_source);
                         }
                     }
                 }
