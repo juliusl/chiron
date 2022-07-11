@@ -6,11 +6,21 @@ use lifec::{
 
 /// This type wraps the runtime editor as the underlying extension
 /// Can be executed standalone w/o the main window
-pub struct Host(pub RuntimeEditor);
+pub struct Host(
+    pub RuntimeEditor,
+    /// Clear entities
+    Option<()>
+);
+
+impl From<RuntimeEditor> for Host {
+    fn from(editor: RuntimeEditor) -> Self {
+        Host(editor, None)
+    }
+}
 
 impl From<Runtime> for Host {
     fn from(runtime: Runtime) -> Self {
-        Host(RuntimeEditor::new(runtime))
+        Host(RuntimeEditor::new(runtime), None)
     }
 }
 
@@ -54,6 +64,11 @@ impl Host {
                 .collect(),
         ).get(0).and_then(|e| Some(*e))
     }
+
+    /// Signals the host to clear all entities stored in the app_world
+    fn clear_entities(&mut self) {
+        self.1 = Some(());
+    }
 }
 
 impl Extension for Host {
@@ -77,6 +92,13 @@ impl Extension for Host {
                         }
                         if ui.is_item_hovered() {
                             ui.tooltip_text("Scans the current project for all engines, adding each to the current runtime.");
+                        }
+
+                        if MenuItem::new("Reset").build(ui) {
+                            self.clear_entities();
+                        }
+                        if ui.is_item_hovered() {
+                            ui.tooltip_text("Deletes all entities, and components in storage.");
                         }
                     });
                 });
@@ -116,5 +138,12 @@ impl Extension for Host {
 
     fn on_run(&'_ mut self, app_world: &World) {
         self.0.on_run(app_world);
+    }
+
+    fn on_maintain(&'_ mut self, _app_world: &mut World) {
+        // Clear entities
+        if let Some(()) = self.1.take() {
+            _app_world.delete_all();
+        }
     }
 }

@@ -28,3 +28,17 @@ add work_dir   .text .run/portal
 add index_html .text index.html
 add node_title .text Static Files Host 
 ```
+
+``` req call
+define json_placeholder request .symbol req
+``` request
+add uri         .text https://jsonplaceholder.typicode.com/todos/1
+add method      .text GET
+add node_title  .text Test Json Request
+```
+
+``` print call
+define print println .symbol print
+``` println
+add node_title .text Println
+```

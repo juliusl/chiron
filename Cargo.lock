@@ -1371,7 +1371,7 @@ dependencies = [
 [[package]]
 name = "lifec"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec.git?branch=main#8224f5026cd44e8a6af2f981d01d8433182eb24e"
+source = "git+https://github.com/juliusl/lifec.git?branch=main#402f004bcde5ceac667b3541a2a0a67468320cfc"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git)",
  "base64 0.13.0",
@@ -1393,7 +1393,7 @@ dependencies = [
 [[package]]
 name = "lifec_hyper"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec_hyper.git?branch=main#aeec9a71a61c2f3f5450965486bbe34249881c3e"
+source = "git+https://github.com/juliusl/lifec_hyper.git?branch=main#d5ab607f1b6d88d99b256ab71af8152d1db3d9ca"
 dependencies = [
  "hyper 0.14.20",
  "hyper-tls",
@@ -2509,18 +2509,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.138"
+version = "1.0.139"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1578c6245786b9d168c5447eeacfb96856573ca56c9d68fdcf394be134882a47"
+checksum = "0171ebb889e45aa68b44aee0859b3eede84c6f5f5c228e6f140c0b2a0a46cad6"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.138"
+version = "1.0.139"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "023e9b1467aef8a10fb88f25611870ada9800ef7e22afce356bb0d2387b6f27c"
+checksum = "dc1d3230c1de7932af58ad8ffbe1d784bd55efd5a9d84ac24f69c72d83543dfb"
 dependencies = [
  "proc-macro2",
  "quote",
