@@ -1,4 +1,5 @@
 use crate::{create_runtime, design::Design, host::Host};
+use futures_util::StreamExt;
 use lifec::{
     editor::RuntimeEditor,
     plugins::{Plugin, Project, ThunkContext},
@@ -8,13 +9,16 @@ use lifec_poem::WebApp;
 use poem::{
     endpoint::EmbeddedFilesEndpoint,
     get, handler,
-    web::{Html, Path},
-    Route,
+    web::{
+        websocket::{Message, WebSocket},
+        Data, Html, Path,
+    },
+    EndpointExt, IntoResponse, Route,
 };
 
 /// Lab component hosts a portal for browsing .runmd in the design folder
 #[derive(Default)]
-pub struct Lab;
+pub struct Lab(ThunkContext);
 
 impl Plugin<ThunkContext> for Lab {
     fn symbol() -> &'static str {
@@ -27,7 +31,7 @@ impl Plugin<ThunkContext> for Lab {
 
     fn call_with_context(context: &mut ThunkContext) -> Option<lifec::plugins::AsyncContext> {
         context.clone().task(|cancel_source| {
-            let tc = context.clone();
+            let mut tc = context.clone();
             async move {
                 if let Some(project_src) = tc.as_ref().find_text("project_src") {
                     if let Some(project) = Project::load_file(project_src) {
@@ -38,9 +42,7 @@ impl Plugin<ThunkContext> for Lab {
                                     c.add_text_attr("address", &address);
                                 });
 
-                            let log = format!(
-                                "Starting lab on {address}/{block_name}"
-                            );
+                            let log = format!("Starting lab on {address}/{block_name}");
 
                             tc.update_status_only(&log).await;
                             eprintln!("{log}");
@@ -48,6 +50,8 @@ impl Plugin<ThunkContext> for Lab {
                             let runtime = create_runtime(project);
                             let runtime_editor = RuntimeEditor::new(runtime);
                             let mut extension = Host::from(runtime_editor);
+
+                            tc.as_mut().add_bool_attr("proxy_dispatcher", true);
 
                             Runtime::start_with(&mut extension, Lab::symbol(), &tc, cancel_source);
                         }
@@ -61,8 +65,8 @@ impl Plugin<ThunkContext> for Lab {
 }
 
 impl WebApp for Lab {
-    fn create(_: &mut ThunkContext) -> Self {
-        Self {}
+    fn create(tc: &mut ThunkContext) -> Self {
+        Self(tc.clone())
     }
 
     fn routes(&mut self) -> poem::Route {
@@ -70,7 +74,31 @@ impl WebApp for Lab {
             .nest("/.run", EmbeddedFilesEndpoint::<Design>::new())
             .at("/:lab_name", get(index))
             .at("/lab/:name", get(lab))
+            .at("/dispatch/:name", get(dispatch.data(self.0.clone())))
     }
+}
+
+#[handler]
+fn dispatch(
+    Path(name): Path<String>,
+    ws: WebSocket,
+    sender: Data<&ThunkContext>,
+) -> impl IntoResponse {
+    let sender = sender.clone();
+    ws.on_upgrade(move |socket| async move {
+        let (_, mut stream) = socket.split();
+
+        tokio::spawn(async move {
+            while let Some(Ok(msg)) = stream.next().await {
+                if let Message::Text(mut text) = msg {
+                    eprintln!("{name} dispatched a message: \n{text}");
+                    let proxy_message = format!("{text}\nadd proxy .enable");
+
+                    sender.dispatch(proxy_message).await;
+                }
+            }
+        });
+    })
 }
 
 #[handler]
@@ -151,6 +179,7 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 			}}
 		}});
 
+        let ws  = new WebSocket("ws://localhost:3000/dispatch/{lab_name}");
 		var app = Elm.Main.init({{ 
             node: document.querySelector('main'),
             flags: '{lab_name}'
@@ -166,7 +195,7 @@ fn index(Path(lab_name): Path<String>) -> Html<String> {
 		}});
 
         app.ports.dispatchRunmd.subscribe(function (message) {{
-            console.log(message);
+            ws.send(message);
         }})
 	</script>
 </body>

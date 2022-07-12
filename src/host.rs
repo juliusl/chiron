@@ -1,7 +1,6 @@
 use imgui::{MenuItem, Window};
 use lifec::{
-    editor::{Call, RuntimeEditor, WindowEvent},
-    *,
+    editor::{Call, RuntimeEditor, WindowEvent}, Runtime, AttributeGraph, World, Entity, DispatcherBuilder, Extension, WorldExt,
 };
 
 /// This type wraps the runtime editor as the underlying extension
@@ -9,7 +8,7 @@ use lifec::{
 pub struct Host(
     pub RuntimeEditor,
     /// Clear entities
-    Option<()>
+    Option<()>,
 );
 
 impl From<RuntimeEditor> for Host {
@@ -20,7 +19,7 @@ impl From<RuntimeEditor> for Host {
 
 impl From<Runtime> for Host {
     fn from(runtime: Runtime) -> Self {
-        Host(RuntimeEditor::new(runtime), None)
+        Host::from(RuntimeEditor::new(runtime))
     }
 }
 
@@ -31,12 +30,18 @@ impl AsRef<Runtime> for Host {
 }
 
 impl Host {
-    /// Scans the project creating all engines found in the file
-    fn create_engine_parts(
-        &self, 
-        app_world: &World
-    ) -> Vec<Entity> {
+    fn load_project(&mut self, file_path: impl AsRef<str>) -> Option<()> {
+        if let Some(file) = AttributeGraph::load_from_file(file_path) {
+            *self.0.project_mut().as_mut() = file;
+            *self.0.project_mut() = self.0.project_mut().reload_source();
+            Some(())
+        } else {
+            None
+        }
+    }
 
+    /// Scans the project creating all engines found in the file
+    fn create_engine_parts(&self, app_world: &World) -> Vec<Entity> {
         let mut engines = vec![];
         for (block_name, block) in self.0.project().iter_block() {
             if let Some(_) = block.get_block("call") {
@@ -45,24 +50,21 @@ impl Host {
         }
 
         let engines = engines.iter().map(|e| e.to_string());
-        self.0.runtime().create_engine_group::<Call>(
-            app_world,
-            engines.collect(),
-        )
+        self.0
+            .runtime()
+            .create_engine_group::<Call>(app_world, engines.collect())
     }
 
     /// Creates the engine from a dropped_dir path
-    fn create_default(
-        &self,
-        app_world: &World,
-    ) -> Option<Entity> {
-        self.0.runtime().create_engine_group::<Call>(
-            app_world,
-            vec!["default"]
-                .iter()
-                .map(|s| s.to_string())
-                .collect(),
-        ).get(0).and_then(|e| Some(*e))
+    fn create_default(&self, app_world: &World) -> Option<Entity> {
+        self.0
+            .runtime()
+            .create_engine_group::<Call>(
+                app_world,
+                vec!["default"].iter().map(|s| s.to_string()).collect(),
+            )
+            .get(0)
+            .and_then(|e| Some(*e))
     }
 
     /// Signals the host to clear all entities stored in the app_world
@@ -114,21 +116,15 @@ impl Extension for Host {
                 if dropped_file_path.is_dir() {
                     let path = dropped_file_path.join(".runmd");
                     if path.exists() {
-                        if let Some(file) = AttributeGraph::load_from_file(
-                            format!("{:?}", path).trim_matches('"'),
-                        ) {
-                            *self.0.project_mut().as_mut() = file;
-                            *self.0.project_mut() = self.0.project_mut().reload_source();
-                             self.create_default(app_world);
+                        if let Some(_) = self.load_project(path.to_str().unwrap_or_default()) {
+                            self.create_default(app_world);
                         }
                     }
                 } else if "runmd" == dropped_file_path.extension().unwrap_or_default() {
-                    if let Some(file) =
-                        AttributeGraph::load_from_file(dropped_file_path.to_str().unwrap_or_default())
+                    if let Some(_) =
+                        self.load_project(dropped_file_path.to_str().unwrap_or_default())
                     {
-                        *self.0.project_mut().as_mut() = file;
-                        *self.0.project_mut() = self.0.project_mut().reload_source();
-                         self.create_engine_parts(app_world);
+                        self.create_engine_parts(app_world);
                     }
                 }
             }
