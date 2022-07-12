@@ -1,14 +1,49 @@
+# Introducing `.runmd`
+- `runmd` is a set of rules on top of markdown, that can be used to describe runtimes. 
+- The idea behind this is to be able to describe a runtime, in the same way you would structure a story. 
+- Here is a typical example of `runmd`
+``` md 
+``` example timer
+add duration        .int    5
+add duration_ms     .float3 0.0, 0.0, 1000.0
+add default_open    .enable
+```
+- In markdown this element would be referred to as a code block, in runmd, this is known as a block entity.
+
+## Quicklook: Entity Component Systems 
+- An entity component system is a technique for organizing composite groups of things. (for lack of a better term)
+- The advantages of an ECS is your ability to easliy plugin new functionality over existing data, and very compact runtime overhead.
+- To make a long-story short, the result is continguous data that can be looped over very quickly, which is what improves cpu-cache performance.
+- The main ECS chiron uses is `specs`, you can read more about the subject and this library here - https://specs.amethyst.rs/docs/tutorials/
+
+# Block entity in action
+- A block entity starts off w/ a block address, which is a name/symbol pair with a one-to-many relationship
+- Each line of the block describes an event that is dispatched to the entity that is created when the block is loaded. 
+- There are really only two events that are important, which are `add` and `define`.
+- The difference between the two, is to differentiate between stable and transient data. 
+- `add` creates stable data for the entity, while `define` describes transient data that requires interpretation.
+- Below is the same example as the beginning, with a button that will dispatch this block to chiron. Once you click the button, a new block should show up in the desktop tool. 
+``` runmd
+``` demo timer
+add duration        .int    5
+add duration_ms     .float3 0.0, 0.0, 1000.0
+add default_open    .enable
+add always_show     .enable
+```
+
 # Getting started with runmd
-- Defining `default call` will enable chiron to bootstrap a runtime. 
-- To use this feature drop a directory containing a `.runmd` file into chiron.
+- Defining `default call` will allow chiron to bootstrap an entire runtime. 
+- To use this feature drop a directory containing a `.runmd` file into chiron. Which, if you're reading this, is how you got the portal up and running. 
 ``` runmd
 ``` default call
 define portal lab  .symbol portal
 ```
 
-- This lab will prepare local environment, for building new dev boxes. In addition, this lab will launch and host a site for browsing documentation.
-- Dropping individual `.runmd` files into the tool will scan for all engines adding them to the runtime. 
-- For example, each row of `dev_box lab` would be available in the node editor for sequencing.
+# Hierarchy of elements 
+- At the bottom level there are the framing elements `value` and `attribute`. These are basically literal data types w/ labels. 
+- A line of `runmd` is an `event`, a sequence of events is an `engine`, and a group of engines is a `runtime`. 
+- In the context of this portal, our `runtime` is represented by the symbol `lab`, and our engines are represented by the symbol `call`
+- Below, is the actual definition of the runtime hosting this page
 ``` md
 ``` portal lab
 define setup         call .symbol host
@@ -17,30 +52,34 @@ add node_title      .text Host lab portal
 add description     .text Builds and hosts the chiron portal
 add project_src     .text design/portal/.runmd
 ```
+- The call symbols being defined above represent blocks that exist in this project. 
 
-- The above sequence is defined by adding `.symbol {engine_name}` after each `call` line.
-- In the editor `dev_box lab` would be represented by a single node with the title "Dev box setup".
+# Engines
+- Even though events are processed in order, their values are stored in alpha-numeric order.
+- However in an engine, the sequence of events matters, to solve this requirement, a prefix is added in front of the name to force it's position in the sequence.
 ``` md
 ``` setup call
-define a_host           clear    .text   empty
-define b_host           process  .symbol compile_elm
+define a_setup            clear   .text   empty
+define b_setup          process   .symbol compile_elm
 ```
 
-# Hosting the lab portal
-- This sequence compiles the elm app, installs the output, and then starts a server to host the app and an api to fetch `.runmd` files.
 ``` md
 ``` host call
-define c_host           install  .symbol portal
-define d_host           app_host .symbol portal
+define a_host           install  .symbol portal
+define b_host           app_host .symbol portal
 ```
 
-## Building portal code
-- This plugin definition uses the built-in process plugin to define compiling the elm code.
-- Note that the `current_dir` attribute is set for this particular process, which is required by the `elm` command. However, for most other cases this attribute does not need to be included. 
+## Setup Engine
 ``` md
 ``` compile_elm process
 add command                 .text   elm make src/Main.elm --output portal.js
 add current_dir             .text   lib/elm/portal
+```
+
+``` md
+``` portal install 
+add work_dir                      .text   design/portal
+add file_src                      .text   lib/elm/portal/portal.js
 ```
 
 - To check if elm is installed, the expect plugin can be used to check the path
@@ -49,13 +88,7 @@ add current_dir             .text   lib/elm/portal
 define elm which            .text elm
 ```
 
-- This takes the result of the `elm make` process and copies it to the work_dir of the repo.
-``` md
-``` portal install 
-add work_dir                      .text   design/portal
-add file_src                      .text   lib/elm/portal/portal.js
-```
-
+## Host Engine
 - Last, a server to host the lab portal starts. `lab.rs` implements the `app_host` in this case, so most of the routes and api's are defined in that file.
 ``` md
 ``` portal app_host
