@@ -22,13 +22,15 @@ add default_open    .enable
 - There are really only two events that are important, which are `add` and `define`.
 - The difference between the two, is to differentiate between stable and transient data. 
 - `add` creates stable data for the entity, while `define` describes transient data that requires interpretation.
-- Below is the same example as the beginning, with a button that will dispatch this block to chiron. Once you click the button, a new block should show up in the desktop tool. 
+- Below is the same example as the beginning, with a button that will dispatch this block to chiron. Once you click the button, a new block should show up in the desktop tool.
 ``` runmd
 ``` demo timer
-add duration        .int    5
-add duration_ms     .float3 0.0, 0.0, 1000.0
-add default_open    .enable
-add always_show     .enable
+add duration            .int    5
+add duration_ms         .float3 0.0, 0.0, 1000.0
+add default_open        .enable
+add always_show         .enable
+add enable_connection   .enable
+add node_title          .text Demo timer
 ```
 
 # Getting started with runmd
@@ -54,22 +56,29 @@ add project_src     .text design/portal/.runmd
 ```
 - The call symbols being defined above represent blocks that exist in this project. 
 
-# Engines
+# Engine Layout
 - Even though events are processed in order, their values are stored in alpha-numeric order.
-- However in an engine, the sequence of events matters, to solve this requirement, a prefix is added in front of the name to force it's position in the sequence.
+- However in an engine, the sequence of events matters,
+- The solution is a prefix added in front of the name of the event to force it's position in the sequence.
 ``` md
 ``` setup call
 define a_setup            clear   .text   empty
 define b_setup          process   .symbol compile_elm
 ```
 
+- Transient data is data that is in transit. Facilitating these transitions are `plugins`.
+- Plugins are installed w/ the runtime before the block is processed. Plugins are retrieved by symbol.
+- If a plugin is missing, the line in the engine sequence is skipped.
 ``` md
 ``` host call
 define a_host           install  .symbol portal
 define b_host           app_host .symbol portal
 ```
+- Blocks are always processed and plugins are in charge of managing it's own transitions. 
+- By consolidating the layout of engines the runtime uses, dependent transitions are grouped together in such a way that they form a black box.
+- This is helpful for organizing complex systems, and also making reusable copy/paste friendly code. 
 
-## Setup Engine
+## The portal setup engine
 ``` md
 ``` compile_elm process
 add command                 .text   elm make src/Main.elm --output portal.js
