@@ -1,7 +1,10 @@
-module Instructions exposing (viewFullPage, viewInstructions)
+module Instructions exposing (viewFullPage, viewInstructions, viewOutline)
 
 import Element exposing (..)
+import Element.Font as Font
 import Element.Input
+import Layout exposing (viewCommands)
+import List exposing (isEmpty)
 import Markdown
 
 
@@ -15,6 +18,45 @@ type alias ParseResult =
     { value : Header
     , remaining : List String
     }
+
+
+outline : String -> List ParseResult -> List ParseResult
+outline markdown steps =
+    let
+        root =
+            parser (String.lines markdown)
+    in
+    if isEmpty root.remaining then
+        List.append steps [ root ]
+
+    else
+        outline (String.join "\n" root.remaining) (List.append steps [ root ])
+
+
+viewOutline : (String -> msg) -> String -> Element msg
+viewOutline onPress markdown =
+    let
+        steps =
+            outline markdown []
+    in
+    viewCommands True
+        (List.map
+            (\item ->
+                { onPress = onPress <| String.join "\n" (List.concat [ item.value.content, item.remaining ])
+                , label = viewHeaderOutlineItem item.value.header
+                }
+            )
+            steps
+        )
+
+
+viewHeaderOutlineItem : String -> Element msg
+viewHeaderOutlineItem header =
+    Element.el [ Font.size 14 ] <|
+        Element.text <|
+            (String.replace "#" "" <|
+                String.replace "##" "\t" header
+            )
 
 
 viewInstructions : (String -> msg) -> (List String -> Maybe msg) -> msg -> msg -> String -> Element msg

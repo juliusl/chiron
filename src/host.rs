@@ -106,6 +106,14 @@ impl Extension for Host {
                 });
             });
 
+        Window::new("Start here").size([200.0, 100.0], imgui::Condition::Appearing).build(ui, ||{
+            if ui.button("Start help portal") {
+                if let Some(_) = self.load_project("design/portal/.runmd") {
+                    self.create_default(app_world);
+                }
+            }
+        });
+        
         self.0.on_ui(app_world, ui);
     }
 

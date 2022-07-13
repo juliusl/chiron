@@ -6,6 +6,8 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input
 import Html exposing (Html)
+import Element.Input exposing (labelRight)
+import Element.Input exposing (labelLeft)
 
 
 type alias Model msg =
@@ -31,12 +33,18 @@ view model =
             ]
 
 
-viewCommands : List (Command msg) -> Element msg
-viewCommands =
+viewCommands : Bool -> List (Command msg) -> Element msg
+viewCommands workspace =
     \commands ->
         Element.column
-            [ Border.widthEach { top = 0, right = 0, bottom = 0, left = 1 }
-            , paddingEach { top = 4, right = 8, left = 10, bottom = 4 }
+            [ Border.widthEach
+                (if workspace then
+                    { top = 0, right = 1, bottom = 0, left = 0 }
+
+                 else
+                    { top = 0, right = 0, bottom = 0, left = 1 }
+                )
+            , paddingEach { top = 4, right = 14, left = 14, bottom = 4 }
             , Border.color (Element.rgb255 145 145 145)
             , spacing 20
             ]
@@ -173,6 +181,7 @@ viewContent model =
         [ width
             (if model.showWorkspace then
                 fill
+
              else
                 fillPortion 3
             )
@@ -201,11 +210,12 @@ viewWorkspace model =
 viewActions : Model msg -> Element msg
 viewActions model =
     column
-        [ width (
-            if model.showWorkspace then 
+        [ width
+            (if model.showWorkspace then
                 px 100
-            else
-                fillPortion 1 
+
+             else
+                fillPortion 1
             )
         , height fill
         , defaultPadding

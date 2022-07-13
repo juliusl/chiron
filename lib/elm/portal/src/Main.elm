@@ -3,13 +3,13 @@ port module Main exposing (..)
 import Browser
 import Editor exposing (viewCodeEditor)
 import Element exposing (..)
+import Element.Font as Font
 import Html exposing (..)
 import Http
 import Instructions
 import Layout exposing (view, viewCommands)
 import List exposing (isEmpty)
-import Element.Font as Font
-import List
+import Html.Attributes exposing (wrap)
 
 
 type alias Model =
@@ -17,8 +17,9 @@ type alias Model =
     , instructions : String
     , viewFull : Bool
     , edit : Bool
-    , labs : (List String)
+    , labs : List String
     , labName : String
+    , overview : String
     }
 
 
@@ -39,7 +40,7 @@ type Msg
     | Edit
     | OpenLab String
     | GotLab (Result Http.Error String)
-    | GotLabs (Result Http.Error String) 
+    | GotLabs (Result Http.Error String)
     | Done
 
 
@@ -61,11 +62,11 @@ init : Maybe String -> ( Model, Cmd Msg )
 init maybelab =
     let
         default =
-            Model { text = "", language = "markdown", saved = "" } "" False False [] ""
+            Model { text = "", language = "markdown", saved = "" } "" False False [] "" "This is placehold text for a short-summary about what this lab will cover"
     in
     case maybelab of
         Just lab ->
-            ( {default | labName = lab }, getLab GotLab lab )
+            ( { default | labName = lab }, getLab GotLab lab )
 
         Nothing ->
             ( default, getLab GotLab "" )
@@ -95,13 +96,38 @@ view model =
 
         editorModel =
             { language = model.editor.language, text = model.editor.text }
-        
-        labLinks = 
-            (List.map (\lab -> 
-            let
-                labName = (String.replace "/.runmd" "" lab)
-            in
-            { onPress = (OpenLab labName), label = Element.text labName} ) model.labs)
+
+        workspace =
+            if enableEdit then
+                viewCodeEditor editorMessages editorSettings editorModel
+
+            else
+                Element.column [ spacing 50 ]
+                    [ Element.column [ spacing 12 ]
+                        [ Element.el [ Font.size 14, moveRight 8 ]
+                            <| Element.text <|
+                                String.concat <|
+                                    [ "Lab", " - ", model.labName ]
+                            
+                        , Element.el [ Font.size 14, moveRight 8 ]
+                            <| Element.paragraph [] [ Element.text model.overview ]
+                        ]
+                    , Element.column [ spacing 8 ]
+                        [ Element.el [ Font.size 14, moveRight 8 ] <| Element.text "Outline"
+                        , Instructions.viewOutline Instructions model.editor.text
+                        ]
+                    ]
+
+        labLinks =
+            List.map
+                (\lab ->
+                    let
+                        labName =
+                            String.replace "/.runmd" "" lab
+                    in
+                    { onPress = OpenLab labName, label = Element.text labName }
+                )
+                model.labs
     in
     { title = "Chiron lab portal"
     , body =
@@ -114,21 +140,22 @@ view model =
 
                 else
                     Instructions.viewInstructions onRunmd onNext ViewFull Done instructions
-            , workspace = viewCodeEditor editorMessages editorSettings editorModel
+            , workspace = workspace
             , actions =
-                Element.column [
-                    spacing 50
-                ] 
-                [ viewCommands
-                    [ { onPress = Edit, label = Element.text "Edit" }
-                    -- TODO Add subcommands
-                    -- , { onPress = (Dispatch "save"), label = ( Element.text "Render content" ) }
+                Element.column
+                    [ spacing 50
                     ]
-                , Element.column [ spacing 8 ] 
-                    [ Element.el [ Font.size 14 ] ( Element.text "Labs" )
-                    , viewCommands labLinks
+                    [ viewCommands False
+                        [ { onPress = Edit, label = Element.text "Edit" }
+
+                        -- TODO Add subcommands
+                        -- , { onPress = (Dispatch "save"), label = ( Element.text "Render content" ) }
+                        ]
+                    , Element.column [ spacing 8 ]
+                        [ Element.el [ Font.size 14 ] (Element.text "Labs")
+                        , viewCommands False labLinks
+                        ]
                     ]
-                ]
             }
         ]
     }
@@ -189,20 +216,23 @@ update msg model =
         GotLab result ->
             case result of
                 Ok lab ->
-                    ( { model | editor = { editor | text = lab, saved = lab }, instructions = lab }, (
-                        if (isEmpty model.labs) then
-                            getLabs GotLabs
-                        else 
-                            Cmd.none
-                    ) )
+                    ( { model | editor = { editor | text = lab, saved = lab }, instructions = lab }
+                    , if isEmpty model.labs then
+                        getLabs GotLabs
+
+                      else
+                        Cmd.none
+                    )
 
                 Err _ ->
                     ( model, Cmd.none )
+
         GotLabs result ->
             case result of
                 Ok labs ->
-                    ( { model | labs = (List.filter (\name -> name /= (String.concat [model.labName, "/.runmd"]) ) (String.split "\n" labs)) }, Cmd.none )
-                Err _ -> 
+                    ( { model | labs = List.filter (\name -> name /= String.concat [ model.labName, "/.runmd" ]) (String.split "\n" labs) }, Cmd.none )
+
+                Err _ ->
                     ( model, Cmd.none )
 
 
@@ -237,14 +267,15 @@ subscriptions _ =
 -- API
 
 
-getLab : ((Result Http.Error String) -> msg) -> String -> Cmd msg
+getLab : (Result Http.Error String -> msg) -> String -> Cmd msg
 getLab msg lab =
     Http.get
         { url = String.concat [ "/lab/", lab ]
         , expect = Http.expectString msg
         }
 
-getLabs : ((Result Http.Error String) -> msg) -> Cmd msg
+
+getLabs : (Result Http.Error String -> msg) -> Cmd msg
 getLabs msg =
     Http.get
         { url = "/labs"
