@@ -9,7 +9,7 @@ import Instructions
 import Layout exposing (view, viewCommands)
 import List exposing (isEmpty)
 import Element.Font as Font
-import List exposing (concat)
+import List
 
 
 type alias Model =

@@ -173,7 +173,6 @@ viewContent model =
         [ width
             (if model.showWorkspace then
                 fill
-
              else
                 fillPortion 3
             )
@@ -188,7 +187,7 @@ viewWorkspace model =
     column
         [ width
             (if model.showWorkspace then
-                fillPortion 3
+                px 800
 
              else
                 fillPortion 1
@@ -202,7 +201,12 @@ viewWorkspace model =
 viewActions : Model msg -> Element msg
 viewActions model =
     column
-        [ width (fillPortion 1)
+        [ width (
+            if model.showWorkspace then 
+                px 100
+            else
+                fillPortion 1 
+            )
         , height fill
         , defaultPadding
         ]

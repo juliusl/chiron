@@ -12589,7 +12589,7 @@ var $author$project$Layout$viewActions = function (model) {
 		_List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$width(
-				$mdgriffith$elm_ui$Element$fillPortion(1)),
+				model.showWorkspace ? $mdgriffith$elm_ui$Element$px(100) : $mdgriffith$elm_ui$Element$fillPortion(1)),
 				$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 				$author$project$Layout$defaultPadding
 			]),
@@ -12615,7 +12615,7 @@ var $author$project$Layout$viewWorkspace = function (model) {
 		_List_fromArray(
 			[
 				$mdgriffith$elm_ui$Element$width(
-				model.showWorkspace ? $mdgriffith$elm_ui$Element$fillPortion(3) : $mdgriffith$elm_ui$Element$fillPortion(1)),
+				model.showWorkspace ? $mdgriffith$elm_ui$Element$px(800) : $mdgriffith$elm_ui$Element$fillPortion(1)),
 				$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
 				$author$project$Layout$defaultPadding
 			]),
