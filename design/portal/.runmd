@@ -118,7 +118,8 @@ add debug           .enable
 add auto            .disable
 - add required_os   .text windows
 ```
-- This is just an example, so if elm isn't currently installed, the above fix would 
+- This is just an example, so if elm isn't currently installed, the above fix would not succeed, which means another fix would get dispatched.
+- If another fix is attempted, the previous one will be archived for troubleshooting. 
 
 ## Host Engine
 - Last, a server to host the lab portal starts. `lab.rs` implements the `app_host` in this case, so most of the routes and api's are defined in that file.
