@@ -1,8 +1,8 @@
 use lifec_hyper::HyperContext;
 use lifec_poem::{StaticFiles, AppHost};
 use lifec::{
-    plugins::{Project, Clear, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote, Expect}, 
-    editor::Call,
+    plugins::{Project, Clear, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote, Expect, Missing}, 
+    editor::{Call, Fix},
     *
 };
 use shinsu::NodeEditor;
@@ -66,6 +66,7 @@ fn create_runtime(project: Project) -> Runtime {
     runtime.install::<Call, Remote>();
     runtime.install::<Call, Expect>();
     runtime.install::<Call, Runtime>();
+    runtime.install::<Fix, Missing>();
 
     // --- lifec_poem plugins ---
     // -- Hosting code

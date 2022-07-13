@@ -1383,7 +1383,7 @@ dependencies = [
 [[package]]
 name = "lifec"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec.git?branch=main#e25953fbb3eef2e5726421130f2b21ed558ca298"
+source = "git+https://github.com/juliusl/lifec.git?branch=main#a2ccf6cbd660985de0c85b22d36faf27977f2611"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git)",
  "base64 0.13.0",
@@ -2027,9 +2027,9 @@ checksum = "1df8c4ec4b0627e53bdf214615ad287367e482558cf84b109250b37464dc03ae"
 
 [[package]]
 name = "poem"
-version = "1.3.33"
+version = "1.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0852cb7cb86883d1cf228dc8c8e747235ae55090d71321046c4d7597f42a6819"
+checksum = "d9bb8a94a0e5bf1d552f3ccd06bc9a1d3d036a33cdcb33483e4f84969e67d1ef"
 dependencies = [
  "async-trait",
  "base64 0.13.0",
@@ -2065,9 +2065,9 @@ dependencies = [
 
 [[package]]
 name = "poem-derive"
-version = "1.3.33"
+version = "1.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35ee8ad61be88a0446707897d3983771f7d2e5bd785a18411e6185f569429b2b"
+checksum = "5b4ed9b98325f053dd32e2218943722c1343d33490ec0024e1053aea61ac8231"
 dependencies = [
  "proc-macro-crate 1.1.3",
  "proc-macro2",
@@ -2604,7 +2604,7 @@ dependencies = [
 [[package]]
 name = "shinsu"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/shinsu.git?branch=pr/fork#96a62dc92cc40c609dc0ef79d3349e4b2285450d"
+source = "git+https://github.com/juliusl/shinsu.git?branch=pr/fork#a9637b8a4e950781957d70be5353ebe12c91c098"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git?branch=main)",
  "imgui",

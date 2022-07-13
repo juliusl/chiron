@@ -22,7 +22,7 @@ add default_open    .enable
 - There are really only two events that are important, which are `add` and `define`.
 - The difference between the two, is to differentiate between stable and transient data. 
 - `add` creates stable data for the entity, while `define` describes transient data that requires interpretation.
-- Below is the same example as the beginning, with a button that will dispatch this block to chiron. Once you click the button, a new block should show up in the desktop tool.
+- Below is the same example as the beginning, with a button that will dispatch this block to chiron. Once you click the button, a new block should show up in chiron.
 ``` runmd
 ``` demo timer
 add duration            .int    5
@@ -36,7 +36,7 @@ add node_title          .text Demo timer
 # Getting started with runmd
 - Defining `default call` will allow chiron to bootstrap an entire runtime. 
 - To use this feature drop a directory containing a `.runmd` file into chiron. Which, if you're reading this, is how you got the portal up and running. 
-``` runmd
+``` md
 ``` default call
 define portal lab  .symbol portal
 ```
@@ -91,11 +91,34 @@ add work_dir                      .text   design/portal
 add file_src                      .text   lib/elm/portal/portal.js
 ```
 
-- To check if elm is installed, the expect plugin can be used to check the path
-``` md
+## Error handling example, is `elm` installed?
+- The `expect` plugin can be used to find if a binary is installed by defining `which` symbols
+- If `stop_on_error` is enabled, the event runtime will stop at the entity that had and error.
+``` runmd
 ``` compile_elm expect
-define elm which            .text elm
+define elm which                .text elm
+add stop_on_error               .enable
+add default_open                .enable
+add always_show                 .enable
+add enable_connection           .enable
+add node_title                  .text Check elm is installed
 ```
+
+- If `stop_on_error` is enabled, and a fix event is defined for the problem, then when the fix event completes, it will automatically retry the stopped entity. 
+- In this example, if `elm` is not installed, then calling the above plugin will cause a fix event to show up. 
+- If for example `auto` was enabled, the fix would automatically fire, and point back to the stopped entity, and would do so until the plugin succeeds.
+``` md
+``` elm fix
+define elm missing
+``` missing
+add duration        .int 5
+add quiet           .enable
+add command         .text echo hello world
+add debug           .enable
+add auto            .disable
+- add required_os   .text windows
+```
+- This is just an example, so if elm isn't currently installed, the above fix would 
 
 ## Host Engine
 - Last, a server to host the lab portal starts. `lab.rs` implements the `app_host` in this case, so most of the routes and api's are defined in that file.
@@ -104,3 +127,5 @@ define elm which            .text elm
 add node_title                   .text  Host lab app_host
 add address                      .text  localhost:3000
 ```
+
+

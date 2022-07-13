@@ -178,13 +178,20 @@ parseCodeBlock onRunmd details =
                 "runmd" ->
                     formatCodeBlock
                         (Element.row
-                            [ Element.onLeft
+                            [ Element.onRight
                                 (button
-                                    [ Font.size 16
-                                    , Element.moveLeft 20.0
-                                    , padding 8
+                                    [ Font.size 14
+                                    , moveRight 18
+                                    , Font.family [ Font.typeface "system-ui" ]
+                                    , Border.color (rgb255 0x95 0xA5 0x8D)
+                                    , Border.widthEach { left = 1, top = 0, bottom = 0, right = 0 }
+                                    , padding 16
+                                    , Element.mouseDown 
+                                        [ Background.color (rgb255 0x95 0xA5 0x8D) 
+                                        , Font.color (rgb255 0xFF 0xFF 0xFF)
+                                        ]
                                     ]
-                                    { onPress = Just (onRunmd details.body), label = Element.text "Dispatch to chiron" }
+                                    { onPress = Just (onRunmd details.body), label = Element.text "Dispatch" }
                                 )
                             ]
                             [ Element.text details.body ]
