@@ -5604,13 +5604,13 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$document = _Browser_document;
-var $author$project$Main$Model = F4(
-	function (editor, instructions, viewFull, edit) {
-		return {edit: edit, editor: editor, instructions: instructions, viewFull: viewFull};
-	});
 var $author$project$Main$GotLab = function (a) {
 	return {$: 'GotLab', a: a};
 };
+var $author$project$Main$Model = F6(
+	function (editor, instructions, viewFull, edit, labs, labName) {
+		return {edit: edit, editor: editor, instructions: instructions, labName: labName, labs: labs, viewFull: viewFull};
+	});
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
@@ -6393,31 +6393,36 @@ var $elm$http$Http$get = function (r) {
 	return $elm$http$Http$request(
 		{body: $elm$http$Http$emptyBody, expect: r.expect, headers: _List_Nil, method: 'GET', timeout: $elm$core$Maybe$Nothing, tracker: $elm$core$Maybe$Nothing, url: r.url});
 };
-var $author$project$Main$getLab = function (lab) {
-	return $elm$http$Http$get(
-		{
-			expect: $elm$http$Http$expectString($author$project$Main$GotLab),
-			url: $elm$core$String$concat(
-				_List_fromArray(
-					['/lab/', lab]))
-		});
-};
+var $author$project$Main$getLab = F2(
+	function (msg, lab) {
+		return $elm$http$Http$get(
+			{
+				expect: $elm$http$Http$expectString(msg),
+				url: $elm$core$String$concat(
+					_List_fromArray(
+						['/lab/', lab]))
+			});
+	});
 var $author$project$Main$init = function (maybelab) {
-	var _default = A4(
+	var _default = A6(
 		$author$project$Main$Model,
 		{language: 'markdown', saved: '', text: ''},
 		'',
 		false,
-		false);
+		false,
+		_List_Nil,
+		'');
 	if (maybelab.$ === 'Just') {
 		var lab = maybelab.a;
 		return _Utils_Tuple2(
-			_default,
-			$author$project$Main$getLab(lab));
+			_Utils_update(
+				_default,
+				{labName: lab}),
+			A2($author$project$Main$getLab, $author$project$Main$GotLab, lab));
 	} else {
 		return _Utils_Tuple2(
 			_default,
-			$author$project$Main$getLab(''));
+			A2($author$project$Main$getLab, $author$project$Main$GotLab, ''));
 	}
 };
 var $elm$json$Json$Decode$null = _Json_decodeNull;
@@ -6430,9 +6435,38 @@ var $author$project$Main$saveContent = _Platform_incomingPort('saveContent', $el
 var $author$project$Main$subscriptions = function (_v0) {
 	return $author$project$Main$saveContent($author$project$Main$Save);
 };
+var $author$project$Main$GotLabs = function (a) {
+	return {$: 'GotLabs', a: a};
+};
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $author$project$Main$dispatchEditorCmd = _Platform_outgoingPort('dispatchEditorCmd', $elm$json$Json$Encode$string);
 var $author$project$Main$dispatchRunmd = _Platform_outgoingPort('dispatchRunmd', $elm$json$Json$Encode$string);
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Main$getLabs = function (msg) {
+	return $elm$http$Http$get(
+		{
+			expect: $elm$http$Http$expectString(msg),
+			url: '/labs'
+		});
+};
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Basics$not = _Basics_not;
@@ -6503,7 +6537,14 @@ var $author$project$Main$update = F2(
 						model,
 						{instructions: model.editor.text}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'OpenLab':
+				var name = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{labName: name, labs: _List_Nil}),
+					A2($author$project$Main$getLab, $author$project$Main$GotLab, name));
+			case 'GotLab':
 				var result = msg.a;
 				if (result.$ === 'Ok') {
 					var lab = result.a;
@@ -6516,6 +6557,29 @@ var $author$project$Main$update = F2(
 									{saved: lab, text: lab}),
 								instructions: lab
 							}),
+						$elm$core$List$isEmpty(model.labs) ? $author$project$Main$getLabs($author$project$Main$GotLabs) : $elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
+			default:
+				var result = msg.a;
+				if (result.$ === 'Ok') {
+					var labs = result.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{
+								labs: A2(
+									$elm$core$List$filter,
+									function (name) {
+										return !_Utils_eq(
+											name,
+											$elm$core$String$concat(
+												_List_fromArray(
+													[model.labName, '/.runmd'])));
+									},
+									A2($elm$core$String$split, '\n', labs))
+							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
@@ -6527,34 +6591,10 @@ var $author$project$Main$Dispatch = function (a) {
 };
 var $author$project$Main$Done = {$: 'Done'};
 var $author$project$Main$Edit = {$: 'Edit'};
+var $author$project$Main$OpenLab = function (a) {
+	return {$: 'OpenLab', a: a};
+};
 var $author$project$Main$ViewFull = {$: 'ViewFull'};
-var $author$project$Main$Instructions = function (a) {
-	return {$: 'Instructions', a: a};
-};
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $author$project$Main$onNext = function (remaining) {
-	return $elm$core$List$isEmpty(remaining) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-		$author$project$Main$Instructions(
-			A2($elm$core$String$join, '\n', remaining)));
-};
-var $author$project$Main$DispatchRunmd = function (a) {
-	return {$: 'DispatchRunmd', a: a};
-};
-var $author$project$Main$onRunmd = function (runmd) {
-	return $author$project$Main$DispatchRunmd(runmd);
-};
-var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
-	return {$: 'Text', a: a};
-};
-var $mdgriffith$elm_ui$Element$text = function (content) {
-	return $mdgriffith$elm_ui$Internal$Model$Text(content);
-};
 var $mdgriffith$elm_ui$Internal$Model$Unkeyed = function (a) {
 	return {$: 'Unkeyed', a: a};
 };
@@ -9903,17 +9943,6 @@ var $mdgriffith$elm_ui$Internal$Model$adjust = F3(
 	function (size, height, vertical) {
 		return {height: height / size, size: size, vertical: vertical};
 	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
 var $elm$core$List$maximum = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -9934,7 +9963,6 @@ var $elm$core$List$minimum = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$Basics$neq = _Utils_notEqual;
 var $mdgriffith$elm_ui$Internal$Model$convertAdjustment = function (adjustment) {
 	var lines = _List_fromArray(
 		[adjustment.capital, adjustment.baseline, adjustment.descender, adjustment.lowercase]);
@@ -12030,13 +12058,61 @@ var $mdgriffith$elm_ui$Element$column = F2(
 						attrs))),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
-var $mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
-	function (a, b, c) {
-		return {$: 'SpacingStyle', a: a, b: b, c: c};
+var $mdgriffith$elm_ui$Element$el = F2(
+	function (attrs, child) {
+		return A4(
+			$mdgriffith$elm_ui$Internal$Model$element,
+			$mdgriffith$elm_ui$Internal$Model$asEl,
+			$mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				$elm$core$List$cons,
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+				A2(
+					$elm$core$List$cons,
+					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
+					attrs)),
+			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
+				_List_fromArray(
+					[child])));
 	});
+var $author$project$Main$Instructions = function (a) {
+	return {$: 'Instructions', a: a};
+};
+var $author$project$Main$onNext = function (remaining) {
+	return $elm$core$List$isEmpty(remaining) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+		$author$project$Main$Instructions(
+			A2($elm$core$String$join, '\n', remaining)));
+};
+var $author$project$Main$DispatchRunmd = function (a) {
+	return {$: 'DispatchRunmd', a: a};
+};
+var $author$project$Main$onRunmd = function (runmd) {
+	return $author$project$Main$DispatchRunmd(runmd);
+};
+var $elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			$elm$core$String$join,
+			after,
+			A2($elm$core$String$split, before, string));
+	});
+var $mdgriffith$elm_ui$Internal$Model$FontSize = function (a) {
+	return {$: 'FontSize', a: a};
+};
 var $mdgriffith$elm_ui$Internal$Model$StyleClass = F2(
 	function (a, b) {
 		return {$: 'StyleClass', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$fontSize = $mdgriffith$elm_ui$Internal$Flag$flag(4);
+var $mdgriffith$elm_ui$Element$Font$size = function (i) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$fontSize,
+		$mdgriffith$elm_ui$Internal$Model$FontSize(i));
+};
+var $mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
+	function (a, b, c) {
+		return {$: 'SpacingStyle', a: a, b: b, c: c};
 	});
 var $mdgriffith$elm_ui$Internal$Flag$spacing = $mdgriffith$elm_ui$Internal$Flag$flag(3);
 var $mdgriffith$elm_ui$Internal$Model$spacingName = F2(
@@ -12052,6 +12128,12 @@ var $mdgriffith$elm_ui$Element$spacing = function (x) {
 			A2($mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
 			x,
 			x));
+};
+var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var $mdgriffith$elm_ui$Element$text = function (content) {
+	return $mdgriffith$elm_ui$Internal$Model$Text(content);
 };
 var $author$project$Layout$defaultSpacing = $mdgriffith$elm_ui$Element$spacing(20);
 var $mdgriffith$elm_ui$Internal$Model$Fill = function (a) {
@@ -12214,9 +12296,6 @@ var $mdgriffith$elm_ui$Internal$Model$FontFamily = F2(
 	function (a, b) {
 		return {$: 'FontFamily', a: a, b: b};
 	});
-var $mdgriffith$elm_ui$Internal$Model$FontSize = function (a) {
-	return {$: 'FontSize', a: a};
-};
 var $mdgriffith$elm_ui$Internal$Model$SansSerif = {$: 'SansSerif'};
 var $mdgriffith$elm_ui$Internal$Model$Typeface = function (a) {
 	return {$: 'Typeface', a: a};
@@ -12224,7 +12303,6 @@ var $mdgriffith$elm_ui$Internal$Model$Typeface = function (a) {
 var $mdgriffith$elm_ui$Internal$Flag$bgColor = $mdgriffith$elm_ui$Internal$Flag$flag(8);
 var $mdgriffith$elm_ui$Internal$Flag$fontColor = $mdgriffith$elm_ui$Internal$Flag$flag(14);
 var $mdgriffith$elm_ui$Internal$Flag$fontFamily = $mdgriffith$elm_ui$Internal$Flag$flag(5);
-var $mdgriffith$elm_ui$Internal$Flag$fontSize = $mdgriffith$elm_ui$Internal$Flag$flag(4);
 var $mdgriffith$elm_ui$Internal$Model$formatColorClass = function (_v0) {
 	var red = _v0.a;
 	var green = _v0.b;
@@ -13452,23 +13530,6 @@ var $mdgriffith$elm_ui$Element$Font$color = function (fontColor) {
 			'color',
 			fontColor));
 };
-var $mdgriffith$elm_ui$Element$el = F2(
-	function (attrs, child) {
-		return A4(
-			$mdgriffith$elm_ui$Internal$Model$element,
-			$mdgriffith$elm_ui$Internal$Model$asEl,
-			$mdgriffith$elm_ui$Internal$Model$div,
-			A2(
-				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
-				A2(
-					$elm$core$List$cons,
-					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
-					attrs)),
-			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
-				_List_fromArray(
-					[child])));
-	});
 var $mdgriffith$elm_ui$Element$rgba = $mdgriffith$elm_ui$Internal$Model$Rgba;
 var $mdgriffith$elm_ui$Element$Input$renderPlaceholder = F3(
 	function (_v0, forPlaceholder, on) {
@@ -13756,12 +13817,6 @@ var $mdgriffith$elm_ui$Element$Input$multiline = F2(
 			attrs,
 			{label: multi.label, onChange: multi.onChange, placeholder: multi.placeholder, text: multi.text});
 	});
-var $mdgriffith$elm_ui$Element$Font$size = function (i) {
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$fontSize,
-		$mdgriffith$elm_ui$Internal$Model$FontSize(i));
-};
 var $author$project$Editor$viewMultilineEditor = F2(
 	function (onChange, model) {
 		return A2(
@@ -23324,6 +23379,16 @@ var $author$project$Instructions$viewInstructions = F5(
 		}
 	});
 var $author$project$Main$view = function (model) {
+	var labLinks = A2(
+		$elm$core$List$map,
+		function (lab) {
+			var labName = A3($elm$core$String$replace, '/.runmd', '', lab);
+			return {
+				label: $mdgriffith$elm_ui$Element$text(labName),
+				onPress: $author$project$Main$OpenLab(labName)
+			};
+		},
+		model.labs);
 	var instructions = model.instructions;
 	var enableFullView = model.viewFull;
 	var enableEdit = model.edit;
@@ -23338,13 +23403,39 @@ var $author$project$Main$view = function (model) {
 			[
 				$author$project$Layout$view(
 				{
-					actions: $author$project$Layout$viewCommands(
+					actions: A2(
+						$mdgriffith$elm_ui$Element$column,
 						_List_fromArray(
 							[
-								{
-								label: $mdgriffith$elm_ui$Element$text('Edit'),
-								onPress: $author$project$Main$Edit
-							}
+								$mdgriffith$elm_ui$Element$spacing(50)
+							]),
+						_List_fromArray(
+							[
+								$author$project$Layout$viewCommands(
+								_List_fromArray(
+									[
+										{
+										label: $mdgriffith$elm_ui$Element$text('Edit'),
+										onPress: $author$project$Main$Edit
+									}
+									])),
+								A2(
+								$mdgriffith$elm_ui$Element$column,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$spacing(8)
+									]),
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_ui$Element$el,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$Font$size(14)
+											]),
+										$mdgriffith$elm_ui$Element$text('Labs')),
+										$author$project$Layout$viewCommands(labLinks)
+									]))
 							])),
 					content: enableFullView ? A2($author$project$Instructions$viewFullPage, $author$project$Main$onRunmd, instructions) : A5($author$project$Instructions$viewInstructions, $author$project$Main$onRunmd, $author$project$Main$onNext, $author$project$Main$ViewFull, $author$project$Main$Done, instructions),
 					showWorkspace: enableEdit,

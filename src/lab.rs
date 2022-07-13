@@ -74,6 +74,7 @@ impl WebApp for Lab {
             .nest("/.run", EmbeddedFilesEndpoint::<Design>::new())
             .at("/:lab_name", get(index))
             .at("/lab/:name", get(lab))
+            .at("/labs", get(labs))
             .at("/dispatch/:name", get(dispatch.data(self.0.clone())))
     }
 }
@@ -114,6 +115,11 @@ async fn lab(Path(name): Path<String>) -> String {
     } else {
         String::default()
     }
+}
+
+#[handler]
+fn labs() -> String {
+    Design::labs().join("\n")
 }
 
 #[handler]
