@@ -23,6 +23,23 @@ use serde::{Deserialize, Serialize};
 #[derive(Default)]
 pub struct Lab(ThunkContext);
 
+impl Lab {
+    fn get_project(project_src: impl AsRef<str>) -> Option<Project> {
+        if project_src.as_ref().starts_with("design/") {
+            let path = project_src.as_ref().trim_start_matches("design/");
+            if let Some(project) = Design::get(path) {
+                if let Some(content) = String::from_utf8(project.data.to_vec()).ok() {
+                    if let Some(project) = Project::load_content(content) {
+                        return Some(project);
+                    }
+                }
+            }
+        }
+
+        Project::load_file(project_src)
+    }
+}
+
 impl Plugin<ThunkContext> for Lab {
     fn symbol() -> &'static str {
         "lab"
@@ -37,7 +54,7 @@ impl Plugin<ThunkContext> for Lab {
             let mut tc = context.clone();
             async move {
                 if let Some(project_src) = tc.as_ref().find_text("project_src") {
-                    if let Some(project) = Project::load_file(project_src) {
+                    if let Some(project) = Self::get_project(project_src) {
                         let block_name = tc.block.block_name.to_string();
                         if let Some(address) = tc.as_ref().find_text("address") {
                             let project =
@@ -45,7 +62,8 @@ impl Plugin<ThunkContext> for Lab {
                                     c.add_text_attr("address", &address);
                                 });
 
-                            let log = format!("Starting lab on {address}/{block_name}");
+                            let link = format!("http://{address}/{block_name}");
+                            let log = format!("Starting lab on {link}");
 
                             tc.update_status_only(&log).await;
                             eprintln!("{log}");
@@ -55,7 +73,6 @@ impl Plugin<ThunkContext> for Lab {
                             let mut extension = Host::from(runtime_editor);
 
                             tc.as_mut().add_bool_attr("proxy_dispatcher", true);
-
                             Runtime::start_with(&mut extension, Lab::symbol(), &tc, cancel_source);
                         }
                     }
