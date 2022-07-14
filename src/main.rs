@@ -1,7 +1,7 @@
 use lifec_hyper::HyperContext;
 use lifec_poem::{StaticFiles, AppHost};
 use lifec::{
-    plugins::{Project, Clear, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote, Expect, Missing}, 
+    plugins::{Project, Clear, OpenFile, WriteFile, Process, Timer, Config, Println, OpenDir, Remote, Expect, Missing, Redirect}, 
     editor::{Call, Fix},
     *
 };
@@ -66,6 +66,7 @@ fn create_runtime(project: Project) -> Runtime {
     runtime.install::<Call, Remote>();
     runtime.install::<Call, Expect>();
     runtime.install::<Call, Runtime>();
+    runtime.install::<Call, Redirect>();
     runtime.install::<Fix, Missing>();
 
     // --- lifec_poem plugins ---
