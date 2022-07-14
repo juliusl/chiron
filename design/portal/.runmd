@@ -132,4 +132,15 @@ add node_title                   .text  Host lab app_host
 add address                      .text  localhost:3000
 ```
 
+## Appendix
 
+- Fix for missing az cli
+``` md
+``` az fix
+define az missing
+``` missing
+add duration        .int 4
+add debug           .enable
+add command         .text sh lib/sh/fix-azcli.sh
+add command_macos   .text sh lib/sh/fix-azcli-macos.sh
+```

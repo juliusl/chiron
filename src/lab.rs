@@ -147,9 +147,11 @@ async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>,) 
                     if let Some(mut expect) = block.get_block("expect") {
                         let mut deps = BTreeMap::<String, String>::default(); 
                         
-                        for (_, value) in expect.clone().find_symbol_values("which") {
-                            if let Value::TextBuffer(dep) = value {
-                                deps.insert(dep, "ok".to_string());
+                        for (name, value) in expect.clone().find_symbol_values("which") {
+                            if Expect::should_expect(name, "which") {
+                                if let Value::TextBuffer(dep) = value {
+                                    deps.insert(dep, "ok".to_string());
+                                }
                             }
                         }
 

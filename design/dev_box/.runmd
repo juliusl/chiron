@@ -52,17 +52,22 @@ define e_exit         part  .text exit-azure.yml_jinja2
 
 # Appendix
 
+``` runmd
 ``` required expect
-define az  which     .text az
-define ssh which     .text ssh
+define az  which                .text az
+define ssh which                .text ssh
+define sh  which                .text sh
+add stop_on_error               .enable
+add default_open                .enable
+add always_show                 .enable
+add enable_connection           .enable
+add node_title                  .text Check installation status
 ```
 
-``` windows expect
-define ps which     .text powershell
-```
-
-``` linux expect 
-define sh which     .text sh
+``` optional expect
+define curl                 which   .text curl
+define brew::macos          which   .text brew
+define powershell::windows  which   .text powershell
 ```
 
 ``` dev_box lab 
