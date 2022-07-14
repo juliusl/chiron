@@ -65,6 +65,7 @@ add node_title                  .text Package user data
 define azure_devbox lab  .symbol azure_devbox
 ```
 
+``` runmd_start_lab
 ``` azure_devbox lab
 define user_data     call .symbol deploy
 define deploy        call 
@@ -82,6 +83,7 @@ define a_deploy install .symbol azure_vm
 define b_deploy remote  .symbol azure_vm
 ```
 
+- This will install script used to make a vm to the .run folder.
 ``` runmd_create
 ``` azure_vm install
 add work_dir                      .text   .run/azure_vm
@@ -92,6 +94,7 @@ add description                   .text    Installs the make-vm script
 add node_title                    .text    Install make-vm script
 ```
 
+- This will start to create a dev box, with the files in .run/azure_vm
 ``` runmd_create
 ``` azure_vm remote
 add command .text sh make-vm.sh
@@ -116,7 +119,6 @@ add description                 .text Create an Azure VM using the current user'
 add caveats                     .text If an ssh key is not present, one will be generated via --generate_ssh_keys
 add node_title                  .text Deploy Azure VM
 ```
-
 
 # Appendix
 
