@@ -49,3 +49,21 @@ define d_docker       part  .text install-docker.yml_jinja2
 define e_exit         part  .text exit-azure.yml_jinja2
 ```
 
+## Appendix
+
+``` required expect
+define az  which     .text az
+define ssh which     .text ssh
+```
+
+``` windows expect
+define ps which     .text ps
+```
+
+``` linux expect 
+define sh which     .text sh
+```
+
+``` dev_box lab 
+add overview .text This lab will teach you how to customize a dev environment, using cloud_init parts.
+```

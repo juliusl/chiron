@@ -52,8 +52,10 @@ define setup         call .symbol host
 define host          call
 add node_title      .text Host lab portal
 add description     .text Builds and hosts the chiron portal
+add overview        .text Tour of some of the fundamentals, and introductions to features of this portal.
 add project_src     .text design/portal/.runmd
 ```
+
 - The call symbols being defined above represent blocks that exist in this project. 
 
 # Engine Layout
@@ -95,12 +97,13 @@ add file_src                      .text   lib/elm/portal/portal.js
 - The `expect` plugin can be used to find if a binary is installed by defining `which` symbols
 - If `stop_on_error` is enabled, the event runtime will stop at the entity that had and error.
 ``` runmd
-``` compile_elm expect
+``` optional expect
 define elm which                .text elm
-add stop_on_error               .enable
+add stop_on_error               .disable
 add default_open                .enable
 add always_show                 .enable
 add enable_connection           .enable
+add debug                       .disable
 add node_title                  .text Check elm is installed
 ```
 
