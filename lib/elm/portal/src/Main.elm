@@ -3,23 +3,24 @@ port module Main exposing (..)
 import Browser
 import Editor exposing (viewCodeEditor)
 import Element exposing (..)
+import Element.Border as Border
 import Element.Font as Font
 import Html exposing (..)
 import Http
 import Instructions
+import Json.Decode exposing (Decoder, field, list, map2, string)
 import Layout exposing (view, viewCommands)
 import List exposing (isEmpty)
-import Html.Attributes exposing (wrap)
 
 
 type alias Model =
     { editor : Editor
+    , labStatus : LabStatus
     , instructions : String
     , viewFull : Bool
     , edit : Bool
     , labs : List String
     , labName : String
-    , overview : String
     }
 
 
@@ -27,6 +28,12 @@ type alias Editor =
     { text : String
     , language : String
     , saved : String
+    }
+
+
+type alias LabStatus =
+    { overview : String
+    , expectations : List String
     }
 
 
@@ -39,8 +46,10 @@ type Msg
     | ViewFull
     | Edit
     | OpenLab String
+    | CheckStatus
     | GotLab (Result Http.Error String)
     | GotLabs (Result Http.Error String)
+    | GotLabStatus (Result Http.Error LabStatus)
     | Done
 
 
@@ -62,7 +71,19 @@ init : Maybe String -> ( Model, Cmd Msg )
 init maybelab =
     let
         default =
-            Model { text = "", language = "markdown", saved = "" } "" False False [] "" "This is placehold text for a short-summary about what this lab will cover"
+            Model
+                { text = ""
+                , language = "markdown"
+                , saved = ""
+                }
+                { overview = "This is placeholder text for a short-summary about what this lab will cover"
+                , expectations = []
+                }
+                ""
+                False
+                False
+                []
+                ""
     in
     case maybelab of
         Just lab ->
@@ -103,17 +124,28 @@ view model =
 
             else
                 Element.column [ spacing 50 ]
-                    [ Element.column [ spacing 12 ]
-                        [ Element.el [ Font.size 14, moveRight 8 ]
-                            <| Element.text <|
+                    [ Element.column [ spacing 12, width fill ]
+                        [ Element.el [ Font.size 14 ] <|
+                            Element.text <|
                                 String.concat <|
                                     [ "Lab", " - ", model.labName ]
-                            
-                        , Element.el [ Font.size 14, moveRight 8 ]
-                            <| Element.paragraph [] [ Element.text model.overview ]
+                        , Element.el
+                            [ Font.size 14
+                            ]
+                          <|
+                            Element.paragraph
+                                [ Border.widthEach { top = 0, right = 1, bottom = 0, left = 0 }
+                                , paddingEach { top = 4, right = 14, left = 14, bottom = 4 }
+                                , Border.color (Element.rgb255 145 145 145)
+                                ]
+                                [ Element.text model.labStatus.overview ]
                         ]
-                    , Element.column [ spacing 8 ]
-                        [ Element.el [ Font.size 14, moveRight 8 ] <| Element.text "Outline"
+                    , Element.column [ spacing 8, width fill ]
+                        [ Element.el [ Font.size 14 ] <| Element.text "Requirements"
+                        , Instructions.viewExpectations CheckStatus model.labStatus.expectations
+                        ]
+                    , Element.column [ spacing 8, width fill ]
+                        [ Element.el [ Font.size 14 ] <| Element.text "Outline"
                         , Instructions.viewOutline Instructions model.editor.text
                         ]
                     ]
@@ -213,16 +245,27 @@ update msg model =
         OpenLab name ->
             ( { model | labName = name, labs = [] }, getLab GotLab name )
 
-        GotLab result ->
+        CheckStatus ->
+            ( model, getLabStatus GotLabStatus model.labName )
+
+        GotLabStatus result ->
             case result of
-                Ok lab ->
-                    ( { model | editor = { editor | text = lab, saved = lab }, instructions = lab }
+                Ok labStatus ->
+                    ( { model | labStatus = labStatus }
                     , if isEmpty model.labs then
                         getLabs GotLabs
 
                       else
                         Cmd.none
                     )
+
+                Err _ ->
+                    ( model, Cmd.none )
+
+        GotLab result ->
+            case result of
+                Ok lab ->
+                    ( { model | editor = { editor | text = lab, saved = lab }, instructions = lab }, getLabStatus GotLabStatus model.labName )
 
                 Err _ ->
                     ( model, Cmd.none )
@@ -281,3 +324,18 @@ getLabs msg =
         { url = "/labs"
         , expect = Http.expectString msg
         }
+
+
+getLabStatus : (Result Http.Error LabStatus -> msg) -> String -> Cmd msg
+getLabStatus msg lab =
+    Http.get
+        { url = String.concat [ "/lab/", lab, "/status" ]
+        , expect = Http.expectJson msg labStatusDecoder
+        }
+
+
+labStatusDecoder : Decoder LabStatus
+labStatusDecoder =
+    map2 LabStatus
+        (field "overview" string)
+        (field "expectations" (list string))

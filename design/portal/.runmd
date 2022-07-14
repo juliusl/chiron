@@ -1,28 +1,13 @@
+# Portal overview
+- Welcome, this lab portal is designed as an interactive guide for using Chiron.
+- On the left you can find the requirements for the current lab. Chiron will check on these requirements and display the results.
+- Throughout the lab you will find `dispatch` buttons. When you press these buttons, new "blocks" will appear in the desktop tool. (More on this later)
+
 # Introducing `.runmd`
-- `runmd` is a set of rules on top of markdown, that can be used to describe runtimes. 
-- The idea behind this is to be able to describe a runtime, in the same way you would structure a story. 
-- Here is a typical example of `runmd`
-``` md 
-``` example timer
-add duration        .int    5
-add duration_ms     .float3 0.0, 0.0, 1000.0
-add default_open    .enable
-```
-- In markdown this element would be referred to as a code block, in runmd, this is known as a block entity.
-
-## Quicklook: Entity Component Systems 
-- An entity component system is a technique for organizing composite groups of things. (for lack of a better term)
-- The advantages of an ECS is your ability to easliy plugin new functionality over existing data, and very compact runtime overhead.
-- To make a long-story short, the result is continguous data that can be looped over very quickly, which is what improves cpu-cache performance.
-- The main ECS chiron uses is `specs`, you can read more about the subject and this library here - https://specs.amethyst.rs/docs/tutorials/
-
-# Block entity in action
-- A block entity starts off w/ a block address, which is a name/symbol pair with a one-to-many relationship
-- Each line of the block describes an event that is dispatched to the entity that is created when the block is loaded. 
-- There are really only two events that are important, which are `add` and `define`.
-- The difference between the two, is to differentiate between stable and transient data. 
-- `add` creates stable data for the entity, while `define` describes transient data that requires interpretation.
-- Below is the same example as the beginning, with a button that will dispatch this block to chiron. Once you click the button, a new block should show up in chiron.
+- `runmd` is markdown for describing blocks of `attributes`. Chiron uses these blocks to configure plugins installed w/ it's runtime. Below is an example of a timer plugin.
+- Click on the `dispatch` button to create this block in the tool. Try connecting the cursor pin of the lab to the start of the timer, and the cursor of the timer to the start of the lab.
+- If you cancel the lab, the timer will start, and when the timer finishes, it should start the lab again.
+- The goal of `runmd` is to be able to share ideas w/ blocks that you can play with.
 ``` runmd
 ``` demo timer
 add duration            .int    5
@@ -33,30 +18,28 @@ add enable_connection   .enable
 add node_title          .text Demo timer
 ```
 
-# Getting started with runmd
-- Defining `default call` will allow chiron to bootstrap an entire runtime. 
-- To use this feature drop a directory containing a `.runmd` file into chiron. Which, if you're reading this, is how you got the portal up and running. 
+## Bootstrapping the runtime
+- Defining a `default call` block in your `.runmd` file will allow chiron to bootstrap a runtime. If you drop the folder containing this file into chiron, it will automatically be imported.
+- For example, this block bootstraps the lab portal runtime.
 ``` md
 ``` default call
 define portal lab  .symbol portal
 ```
 
-# Hierarchy of elements 
-- At the bottom level there are the framing elements `value` and `attribute`. These are basically literal data types w/ labels. 
-- A line of `runmd` is an `event`, a sequence of events is an `engine`, and a group of engines is a `runtime`. 
-- In the context of this portal, our `runtime` is represented by the symbol `lab`, and our engines are represented by the symbol `call`
-- Below, is the actual definition of the runtime hosting this page
+## Defining the runtime
+- Below defines the actual portal runtime. The first two lines declare the sequence of engines that are executed.
+- The `call` event is the main engine event in use by the runtime.
 ``` md
 ``` portal lab
 define setup         call .symbol host
 define host          call
 add node_title      .text Host lab portal
 add description     .text Builds and hosts the chiron portal
+add overview        .text Tour of some of the fundamentals, and introductions to features of this portal.
 add project_src     .text design/portal/.runmd
 ```
-- The call symbols being defined above represent blocks that exist in this project. 
 
-# Engine Layout
+## Defining the engines
 - Even though events are processed in order, their values are stored in alpha-numeric order.
 - However in an engine, the sequence of events matters,
 - The solution is a prefix added in front of the name of the event to force it's position in the sequence.
@@ -78,29 +61,42 @@ define b_host           app_host .symbol portal
 - By consolidating the layout of engines the runtime uses, dependent transitions are grouped together in such a way that they form a black box.
 - This is helpful for organizing complex systems, and also making reusable copy/paste friendly code. 
 
-## The portal setup engine
-``` md
+## Defining the plugins for the portal setup engine
+- These two blocks compile and install the portal code
+``` runmd
 ``` compile_elm process
 add command                 .text   elm make src/Main.elm --output portal.js
 add current_dir             .text   lib/elm/portal
 ```
 
-``` md
+``` runmd
 ``` portal install 
 add work_dir                      .text   design/portal
 add file_src                      .text   lib/elm/portal/portal.js
 ```
 
+## The portal app host engine
+- Last, a server to host the lab portal starts. `lab.rs` implements the `app_host` in this case, so most of the routes and api's are defined in that file.
+``` runmd
+``` portal app_host
+add node_title                   .text  Host lab app_host
+add address                      .text  localhost:3000
+```
+
+# Appendix
+- This section is a collection of additional information about this platform.
+
 ## Error handling example, is `elm` installed?
 - The `expect` plugin can be used to find if a binary is installed by defining `which` symbols
 - If `stop_on_error` is enabled, the event runtime will stop at the entity that had and error.
 ``` runmd
-``` compile_elm expect
+``` optional expect
 define elm which                .text elm
-add stop_on_error               .enable
+add stop_on_error               .disable
 add default_open                .enable
 add always_show                 .enable
 add enable_connection           .enable
+add debug                       .disable
 add node_title                  .text Check elm is installed
 ```
 
@@ -121,12 +117,46 @@ add auto            .disable
 - This is just an example, so if elm isn't currently installed, the above fix would not succeed, which means another fix would get dispatched.
 - If another fix is attempted, the previous one will be archived for troubleshooting. 
 
-## Host Engine
-- Last, a server to host the lab portal starts. `lab.rs` implements the `app_host` in this case, so most of the routes and api's are defined in that file.
+## Included fixes (Experimental)
+- These are scripts to fix missing dependencies. 
+- This fix is enabled when az cli is missing
 ``` md
-``` portal app_host
-add node_title                   .text  Host lab app_host
-add address                      .text  localhost:3000
+``` az fix
+define az missing
+``` missing
+add duration        .int 1
+add debug           .enable
+add command         .text sh lib/sh/fix-azcli.sh
+add command_macos   .text sh lib/sh/fix-azcli-macos.sh
 ```
 
+- This fix is enabled when jq is missing
+``` md
+``` jq fix
+define jq missing
+``` missing
+add duration        .int 1
+add debug           .enable
+add command         .text sh lib/sh/fix-jq.sh
+add command_macos   .text sh lib/sh/fix-jq-macos.sh
+```
 
+## Quicklook: Entity Component Systems 
+- An entity component system is a technique for organizing composite groups of things. (for lack of a better term)
+- The advantages of an ECS is your ability to easliy plugin new functionality over existing data, and very compact runtime overhead.
+- To make a long-story short, the result is continguous data that can be looped over very quickly, which is what improves cpu-cache performance.
+- The main ECS chiron uses is `specs`, you can read more about the subject and this library here - https://specs.amethyst.rs/docs/tutorials/
+
+
+## Blocks in action
+- A block starts off w/ a block address, which is a name/symbol pair with a one-to-many relationship
+- Each line of the block describes an event that will be dispatched. Each of these events are applied to a graph of attributes.
+- There are really only two events that are important, which are `add` and `define`.
+- The difference between the two, is to differentiate between stable and transient data. 
+- `add` creates stable data for the entity, while `define` describes transient data that requires interpretation.
+- Below is the same example as the beginning, with a button that will dispatch this block to chiron. Once you click the button, a new block should show up in chiron.
+
+- At the bottom level there are the framing elements `value` and `attribute`. These are basically literal data types w/ labels. 
+- A line of `runmd` is an `event`, a sequence of events is an `engine`, and a group of engines is a `runtime`. 
+- In the context of this portal, our `runtime` is represented by the symbol `lab`, and our engines are represented by the symbol `call`
+- Below, is the actual definition of the runtime hosting this page

@@ -1,9 +1,9 @@
-module Instructions exposing (viewFullPage, viewInstructions, viewOutline)
+module Instructions exposing (viewExpectations, viewFullPage, viewInstructions, viewOutline)
 
 import Element exposing (..)
 import Element.Font as Font
 import Element.Input
-import Layout exposing (viewCommands)
+import Layout exposing (viewCommands, viewStatus)
 import List exposing (isEmpty)
 import Markdown
 
@@ -47,6 +47,19 @@ viewOutline onPress markdown =
                 }
             )
             steps
+        )
+
+
+viewExpectations : msg -> List String -> Element msg
+viewExpectations onPress expectations =
+    viewStatus True
+        (List.map
+            (\item ->
+                { onPress = onPress
+                , label = Element.text item
+                }
+            )
+            expectations
         )
 
 

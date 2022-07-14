@@ -26,22 +26,24 @@ impl Plugin<ThunkContext> for MakeMime {
 
     fn call_with_context(context: &mut ThunkContext) -> Option<lifec::plugins::AsyncContext> {
         context.clone().task(|_| {
-            let tc = context.clone();
+            let mut tc = context.clone();
             async move {
                 if let Some(work_dir) = tc.as_ref().find_text("work_dir") {
                     if let Some(file_dst) = tc.as_ref().find_text("file_dst") {
+                        tc.update_status_only(format!("writing user_data to {file_dst}")).await;
                         tokio::fs::create_dir_all(PathBuf::from(&file_dst).parent().expect("couldn't create dirs")).await.ok();
 
                         match tokio::fs::OpenOptions::new()
                             .write(true)
                             .create(true)
-                            .open(file_dst)
+                            .open(&file_dst)
                             .await
                         {
                             Ok(file) => {
                                 let mut parts = vec![];
                                 for (_, part_value) in tc.as_ref().find_symbol_values("part") {
                                     if let lifec::Value::TextBuffer(part_value) = part_value {
+                                        tc.update_status_only(format!("adding {part_value}")).await;
                                         parts.push(part_value);
                                     }
                                 }
@@ -57,10 +59,16 @@ impl Plugin<ThunkContext> for MakeMime {
                                 eprintln!("{err}");
                             },
                         }
+
+                        if let Some(dir) = PathBuf::from(file_dst).parent() {
+                            let dir = dir.to_str().unwrap_or_default().trim_end_matches('"').to_string();
+
+                            tc.as_mut().add_text_attr("current_dir", dir);
+                        }
                     }
                 }
 
-                None
+                Some(tc)
             }
         })
     }

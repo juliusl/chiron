@@ -278,6 +278,7 @@ dependencies = [
  "poem",
  "rust-embed",
  "serde",
+ "serde_json",
  "serde_yaml",
  "shinsu",
  "tokio",
@@ -1383,7 +1384,7 @@ dependencies = [
 [[package]]
 name = "lifec"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec.git?branch=main#a2ccf6cbd660985de0c85b22d36faf27977f2611"
+source = "git+https://github.com/juliusl/lifec.git?branch=main#0b8bc03ba471091acb21d9b0434a41f1e774e004"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git)",
  "base64 0.13.0",
@@ -2895,10 +2896,11 @@ checksum = "cda74da7e1a664f795bb1f8a87ec406fb89a02522cf6e50620d016add6dbbf5c"
 
 [[package]]
 name = "tokio"
-version = "1.19.2"
+version = "1.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c51a52ed6686dd62c320f9b89299e9dfb46f730c7a48e635c19f21d116cb1439"
+checksum = "57aec3cfa4c296db7255446efb4928a6be304b431a806216105542a67b6ca82e"
 dependencies = [
+ "autocfg",
  "bytes",
  "libc",
  "memchr",
@@ -2957,9 +2959,9 @@ dependencies = [
 
 [[package]]
 name = "tokio-tungstenite"
-version = "0.17.1"
+version = "0.17.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06cda1232a49558c46f8a504d5b93101d42c0bf7f911f12a105ba48168f821ae"
+checksum = "f714dd15bead90401d77e04243611caec13726c2408afd5b31901dfcdcb3b181"
 dependencies = [
  "futures-util",
  "log 0.4.17",
@@ -3048,9 +3050,9 @@ checksum = "3e5d7cd7ab3e47dda6e56542f4bbf3824c15234958c6e1bd6aaa347e93499fdc"
 
 [[package]]
 name = "tungstenite"
-version = "0.17.2"
+version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d96a2dea40e7570482f28eb57afbe42d97551905da6a9400acc5c328d24004f5"
+checksum = "e27992fd6a8c29ee7eef28fc78349aa244134e10ad447ce3b9f0ac0ed0fa4ce0"
 dependencies = [
  "base64 0.13.0",
  "byteorder",
