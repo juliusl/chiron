@@ -43,15 +43,16 @@ define azure_exit          install  .text cloud_init_exit
 - `make_mime` formats the message with each `part` defined in the block.
 - The parts are combined into a mixed mime message and the output is written to the `user_data` file, specified by `file_dst`.
 - After this plugin completes, the next step would be use the generated `.run/cloud_init/user_data` file for deployment.
-``` runmd
+``` runmd_create
 ``` package make_mime
-add    work_dir             .text .config/cloud_init
+add    work_dir             .text lib/cloud_init
 add    file_dst             .text .run/azure_vm/user_data
 define a_enter        part  .text enter-azure.yml_jinja2
 define b_azcli        part  .text install-azcli.yml_jinja2
 define c_golang       part  .text install-golang.yml_jinja2
 define d_docker       part  .text install-docker.yml_jinja2
-define e_exit         part  .text exit-azure.yml_jinja2
+define e_kind         part  .text install-kind.yml_jinja2
+define f_exit         part  .text exit-azure.yml_jinja2
 add default_open                .enable
 add enable_connection           .enable
 add node_title                  .text Package user data
@@ -81,7 +82,7 @@ define a_deploy install .symbol azure_vm
 define b_deploy remote  .symbol azure_vm
 ```
 
-``` runmd
+``` runmd_create
 ``` azure_vm install
 add work_dir                      .text   .run/azure_vm
 add file_src                      .text   lib/sh/make-vm.sh
@@ -91,7 +92,7 @@ add description                   .text    Installs the make-vm script
 add node_title                    .text    Install make-vm script
 ```
 
-``` runmd
+``` runmd_create
 ``` azure_vm remote
 add command .text sh make-vm.sh
 define RESOURCE_GROUP  env      .symbol  resource_group
@@ -103,8 +104,8 @@ define DEV_ID          env      .symbol  dev_id
 
 add resource_group              .text   rg_name
 add vm_name                     .text   vm_name
-add image                       .text   ubuntu
-add location                    .text   westus2
+add image                       .text   UbuntuLTS
+add location                    .text   eastus2
 add admin_username              .text   chief
 add dev_id                      .text   tgif5
 add edit_form                   .enable
@@ -121,10 +122,10 @@ add node_title                  .text Deploy Azure VM
 
 ``` runmd
 ``` required expect
-define az  which                .text az
-define ssh which                .text ssh
-define sh  which                .text sh
-define jq  which                .text jq
+define az         which         .text az
+define ssh        which         .text ssh
+define sh         which         .text sh
+define jq         which         .text jq
 add stop_on_error               .enable
 add default_open                .enable
 add always_show                 .enable
@@ -145,7 +146,7 @@ add overview .text This lab will teach you how to customize a dev environment, u
 ## Basic container development 
 ``` runmd
 ``` basic_container make_mime
-add    work_dir             .text .config/cloud_init
+add    work_dir             .text lib/cloud_init
 add    file_dst             .text .run/azure_vm/user_data
 define a_enter        part  .text enter-azure.yml_jinja2
 define b_azcli        part  .text install-azcli.yml_jinja2
@@ -158,9 +159,10 @@ add node_title                  .text Basic container development
 ```
 
 ## Kubernetes development 
-``` runmd
+- This will create a user_data package for kubernetes development, and send it to the tool.
+``` runmd_create
 ``` kubernetes_dev make_mime
-add    work_dir             .text .config/cloud_init
+add    work_dir             .text lib/cloud_init
 add    file_dst             .text .run/azure_vm/user_data
 define a_enter        part  .text enter-azure.yml_jinja2
 define b_azcli        part  .text install-azcli.yml_jinja2
@@ -172,4 +174,5 @@ define g_exit         part  .text exit-azure.yml_jinja2
 add default_open                .enable
 add enable_connection           .enable
 add node_title                  .text Kubernetes development w/ KIND
+add description                 .text This will install everything needed for kubernetes development.
 ```
