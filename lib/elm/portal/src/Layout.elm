@@ -30,6 +30,7 @@ view model =
             , viewFooter model
             ]
 
+
 viewStatus : Bool -> List (Command msg) -> Element msg
 viewStatus workspace =
     \commands ->
@@ -56,6 +57,7 @@ viewStatus workspace =
                             { onPress = Just command.onPress, label = command.label }
                     )
             )
+
 
 viewCommands : Bool -> List (Command msg) -> Element msg
 viewCommands workspace =

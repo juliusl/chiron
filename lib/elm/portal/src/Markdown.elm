@@ -186,8 +186,8 @@ parseCodeBlock onRunmd details =
                                     , Border.color (rgb255 0x95 0xA5 0x8D)
                                     , Border.widthEach { left = 1, top = 0, bottom = 0, right = 0 }
                                     , padding 16
-                                    , Element.mouseDown 
-                                        [ Background.color (rgb255 0x95 0xA5 0x8D) 
+                                    , Element.mouseDown
+                                        [ Background.color (rgb255 0x95 0xA5 0x8D)
                                         , Font.color (rgb255 0xFF 0xFF 0xFF)
                                         ]
                                     ]

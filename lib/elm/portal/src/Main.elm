@@ -3,14 +3,15 @@ port module Main exposing (..)
 import Browser
 import Editor exposing (viewCodeEditor)
 import Element exposing (..)
-import Element.Font as Font
 import Element.Border as Border
+import Element.Font as Font
 import Html exposing (..)
 import Http
 import Instructions
+import Json.Decode exposing (Decoder, field, list, map2, string)
 import Layout exposing (view, viewCommands)
 import List exposing (isEmpty)
-import Json.Decode exposing (Decoder, map2, field, string, list)
+
 
 type alias Model =
     { editor : Editor
@@ -29,10 +30,12 @@ type alias Editor =
     , saved : String
     }
 
-type alias LabStatus = 
-    { overview: String
-    , expectations: List String
+
+type alias LabStatus =
+    { overview : String
+    , expectations : List String
     }
+
 
 type Msg
     = ResetText
@@ -68,13 +71,19 @@ init : Maybe String -> ( Model, Cmd Msg )
 init maybelab =
     let
         default =
-            Model { 
-                text = "", 
-                language = "markdown", 
-                saved = "" } { 
-                    overview = "This is placeholder text for a short-summary about what this lab will cover", 
-                    expectations = [] 
-                    } "" False False [] "" 
+            Model
+                { text = ""
+                , language = "markdown"
+                , saved = ""
+                }
+                { overview = "This is placeholder text for a short-summary about what this lab will cover"
+                , expectations = []
+                }
+                ""
+                False
+                False
+                []
+                ""
     in
     case maybelab of
         Just lab ->
@@ -116,19 +125,19 @@ view model =
             else
                 Element.column [ spacing 50 ]
                     [ Element.column [ spacing 12, width fill ]
-                        [ Element.el [ Font.size 14 ]
-                            <| Element.text <|
+                        [ Element.el [ Font.size 14 ] <|
+                            Element.text <|
                                 String.concat <|
                                     [ "Lab", " - ", model.labName ]
-                            
-                        , Element.el 
+                        , Element.el
                             [ Font.size 14
                             ]
-                            <| Element.paragraph 
+                          <|
+                            Element.paragraph
                                 [ Border.widthEach { top = 0, right = 1, bottom = 0, left = 0 }
                                 , paddingEach { top = 4, right = 14, left = 14, bottom = 4 }
                                 , Border.color (Element.rgb255 145 145 145)
-                                ] 
+                                ]
                                 [ Element.text model.labStatus.overview ]
                         ]
                     , Element.column [ spacing 8, width fill ]
@@ -237,20 +246,22 @@ update msg model =
             ( { model | labName = name, labs = [] }, getLab GotLab name )
 
         CheckStatus ->
-            ( model , getLabStatus GotLabStatus model.labName )
+            ( model, getLabStatus GotLabStatus model.labName )
 
-        GotLabStatus result -> 
-            case result of 
+        GotLabStatus result ->
+            case result of
                 Ok labStatus ->
-                    ( { model | labStatus = labStatus }, 
-                        if isEmpty model.labs then 
-                            getLabs GotLabs 
-                        else 
-                            Cmd.none
+                    ( { model | labStatus = labStatus }
+                    , if isEmpty model.labs then
+                        getLabs GotLabs
+
+                      else
+                        Cmd.none
                     )
-                Err _ -> 
+
+                Err _ ->
                     ( model, Cmd.none )
-                    
+
         GotLab result ->
             case result of
                 Ok lab ->
@@ -314,12 +325,14 @@ getLabs msg =
         , expect = Http.expectString msg
         }
 
+
 getLabStatus : (Result Http.Error LabStatus -> msg) -> String -> Cmd msg
 getLabStatus msg lab =
     Http.get
         { url = String.concat [ "/lab/", lab, "/status" ]
         , expect = Http.expectJson msg labStatusDecoder
         }
+
 
 labStatusDecoder : Decoder LabStatus
 labStatusDecoder =

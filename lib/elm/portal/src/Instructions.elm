@@ -1,4 +1,4 @@
-module Instructions exposing (viewFullPage, viewInstructions, viewOutline, viewExpectations)
+module Instructions exposing (viewExpectations, viewFullPage, viewInstructions, viewOutline)
 
 import Element exposing (..)
 import Element.Font as Font
@@ -49,11 +49,12 @@ viewOutline onPress markdown =
             steps
         )
 
-viewExpectations : msg -> (List String) -> Element msg
+
+viewExpectations : msg -> List String -> Element msg
 viewExpectations onPress expectations =
-    viewStatus True 
-        (List.map 
-            (\item -> 
+    viewStatus True
+        (List.map
+            (\item ->
                 { onPress = onPress
                 , label = Element.text item
                 }

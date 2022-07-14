@@ -1,6 +1,7 @@
-# Building a dev box with cloud_init
+# Background
 
-# Cloud-init components
+
+## Cloud-init components
 - These are different components that can be installed with cloud_init
 ```runmd
 ``` setup call
@@ -23,7 +24,7 @@ define overlaybd                   install  .text cloud_init
 define rustlang                    install  .text cloud_init
 ```
 
-# Setup for a devbox in an Azure environment
+## Setup for a devbox in an Azure environment
 - This engine include the enter/exit blocks for setting up a vm on Azure.
 - These parts need to be installed in a specific order, since cloud_init_enter add's some functions to overall `runcmd` script. 
 ``` runmd
@@ -49,7 +50,7 @@ define d_docker       part  .text install-docker.yml_jinja2
 define e_exit         part  .text exit-azure.yml_jinja2
 ```
 
-## Appendix
+# Appendix
 
 ``` required expect
 define az  which     .text az
@@ -57,7 +58,7 @@ define ssh which     .text ssh
 ```
 
 ``` windows expect
-define ps which     .text ps
+define ps which     .text powershell
 ```
 
 ``` linux expect 
