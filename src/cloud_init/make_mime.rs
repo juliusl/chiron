@@ -11,6 +11,8 @@ use phf::phf_map;
 use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf};
 use tokio::io::{self, AsyncWriteExt};
 
+use crate::cloud_init::UserData;
+
 #[derive(Component, Default)]
 #[storage(DenseVecStorage)]
 pub struct MakeMime;
@@ -75,6 +77,20 @@ impl Plugin<ThunkContext> for MakeMime {
 }
 
 impl MakeMime {
+    async fn get_userdata_content(work_dir: impl AsRef<str>, file_name: impl AsRef<str>) -> Option<String> {
+        let file_path = PathBuf::from(work_dir.as_ref()).join(file_name.as_ref());
+
+        eprintln!("Trying to find part from path {:?}", file_path);
+
+        if !file_path.exists() && file_path.starts_with("lib/cloud_init") {
+            if let Some(content) = UserData::get(file_name.as_ref()) {
+                return String::from_utf8(content.data.to_vec()).ok();
+            }
+        }
+
+        tokio::fs::read_to_string(&file_path).await.ok()
+    } 
+
     async fn make_mime(
         parts: Vec<String>,
         work_dir: impl AsRef<str>,
@@ -87,10 +103,8 @@ impl MakeMime {
             if let Some((file_name, mime_type)) = node.split_once("_") {
                 let file_path = PathBuf::from(work_dir.as_ref()).join(file_name);
 
-                eprintln!("adding part from path {:?}", file_path);
-
-                match tokio::fs::read_to_string(&file_path).await {
-                    Ok(body) => match CLOUD_INIT_MIME_TYPES[mime_type].parse::<Mime>() {
+                match Self::get_userdata_content(work_dir.as_ref(), file_name).await {
+                    Some(body) => match CLOUD_INIT_MIME_TYPES[mime_type].parse::<Mime>() {
                         Ok(mime_type) => {
                             let file_name = file_path
                                 .strip_prefix(PathBuf::from(work_dir.as_ref()).parent().unwrap())
@@ -103,7 +117,9 @@ impl MakeMime {
                         }
                         Err(_) => {}
                     },
-                    Err(_) => {}
+                    _ => {
+
+                    }
                 }
             }
         }

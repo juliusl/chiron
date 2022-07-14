@@ -3,6 +3,7 @@
 - It will include some examples, and how to assemble the blocks.
 
 ## Create a resource group
+- The following block creates a resource group. Below is a redirect block that you can use to redirect the output to a .json file.
 ``` runmd_create
 ``` resource_group process
 add command .text az group create
@@ -14,10 +15,11 @@ add location                    .text   westus2
 add edit_form                   .enable
 add default_open                .enable
 add enable_connection           .enable
-add description                 .text Creates a resource group
+add description                 .text Creates a resource group in azure
 add node_title                  .text Create resource group
 ```
 
+- Connect the above block to this one in order to redirect the output
 ``` runmd_create
 ``` resource_group redirect
 add redirect_stdout .text resource_group.json

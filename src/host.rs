@@ -1,7 +1,9 @@
 use imgui::{MenuItem, Window};
 use lifec::{
-    editor::{Call, RuntimeEditor, WindowEvent}, Runtime, AttributeGraph, World, Entity, DispatcherBuilder, Extension, WorldExt,
+    editor::{Call, RuntimeEditor, WindowEvent}, Runtime, AttributeGraph, World, Entity, DispatcherBuilder, Extension, WorldExt, RuntimeDispatcher,
 };
+
+use crate::design::Design;
 
 /// This type wraps the runtime editor as the underlying extension
 /// Can be executed standalone w/o the main window
@@ -37,6 +39,17 @@ impl Host {
             Some(())
         } else {
             None
+        }
+    }
+
+    fn load_project_from_content(&mut self, content: impl AsRef<str>) -> bool{
+        let mut graph = AttributeGraph::from(0);
+        if graph.batch_mut(content.as_ref()).is_ok() {
+            *self.0.project_mut().as_mut() = graph;
+            *self.0.project_mut() = self.0.project_mut().reload_source();
+            true 
+        } else {
+            false
         }
     }
 
@@ -108,8 +121,12 @@ impl Extension for Host {
 
         Window::new("Start here").size([200.0, 100.0], imgui::Condition::Appearing).build(ui, ||{
             if ui.button("Start help portal") {
-                if let Some(_) = self.load_project("design/portal/.runmd") {
-                    self.create_default(app_world);
+                if let Some(portal) = Design::get("portal/.runmd") {
+                    if let Some(data) = String::from_utf8(portal.data.to_vec()).ok() {
+                        if self.load_project_from_content(data) {
+                            self.create_default(app_world);
+                        }
+                    }
                 }
             }
         });
