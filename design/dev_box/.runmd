@@ -42,7 +42,7 @@ define azure_exit          install  .text cloud_init_exit
 ``` runmd
 ``` package make_mime
 add    work_dir             .text .config/cloud_init
-add    file_dst             .text .run/cloud_init/user_data
+add    file_dst             .text .run/azure_vm/user_data
 define a_enter        part  .text enter-azure.yml_jinja2
 define b_azcli        part  .text install-azcli.yml_jinja2
 define c_golang       part  .text install-golang.yml_jinja2
@@ -71,7 +71,7 @@ define b_deploy remote  .symbol azure_vm
 
 ``` runmd
 ``` azure_vm remote
-add command .text sh .run/sh/make-vm.sh
+add command .text sh make-vm.sh
 define RESOURCE_GROUP  env      .symbol  resource_group
 define VM_NAME         env      .symbol  vm_name
 define IMAGE           env      .symbol  image
@@ -88,12 +88,12 @@ add dev_id                      .text   tgif5
 add edit_form                   .enable
 add default_open                .enable
 add enable_connection           .enable
-add current_dir                 .text .run/cloud_init
+add current_dir                 .text .run/azure_vm
 add description                 .text Create an Azure VM using the current user's .ssh config, and connect via ssh
 add caveats                     .text If an ssh key is not present, one will be generated via --generate_ssh_keys
 add node_title                  .text Deploy Azure VM
 ``` install
-add work_dir                      .text   .run/sh
+add work_dir                      .text   .run/azure_vm
 add file_src                      .text   lib/sh/make-vm.sh
 ```
 
