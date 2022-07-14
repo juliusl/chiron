@@ -12,7 +12,6 @@ cargo install --path .
 ```
 and then the tool will launch with just, 
 ```sh
-# Note, currently it needs to be launched from the repo folder but this is a temporary limitation
 chiron
 ```
 
