@@ -1384,7 +1384,7 @@ dependencies = [
 [[package]]
 name = "lifec"
 version = "0.1.0"
-source = "git+https://github.com/juliusl/lifec.git?branch=main#1f4ebf29f283e3a76d1ec25bdec4edede340feec"
+source = "git+https://github.com/juliusl/lifec.git?branch=main#0b8bc03ba471091acb21d9b0434a41f1e774e004"
 dependencies = [
  "atlier 0.1.0 (git+https://github.com/juliusl/atlier.git)",
  "base64 0.13.0",

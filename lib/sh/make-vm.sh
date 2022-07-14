@@ -1,16 +1,11 @@
 #!/bin/bash
 
-# Setup Cloud-Init User Data
-cloud-init devel make-mime \
-    -a authorized_keys.yml:cloud-config \
-    -a cloud-init/common.yml:jinja2 \
-    -a cloud-init/install-dotnet-sdk.yml:jinja2 \
-    -a cloud-init/install-golang.yml:jinja2  \
-    -a cloud-init/install-rustlang.yml:jinja2 \
-    -a cloud-init/install-git-server.yml:jinja2 \
-    -a cloud-init/install-$CLUSTER_DRIVER.yml:jinja2 \
-    -a cloud-init/install-$SOURCE_DRIVER.yml:jinja2 \
-    -a cloud-init/exit.yml:jinja2 > user-data
+echo "resource_group: $RESOURCE_GROUP"
+echo "vm_name:        $VM_NAME"
+echo "image:          $IMAGE"
+echo "location:       $LOCATION"
+echo "admin_user:     $ADMIN_USERNAME"
+echo "dns:            $VM_NAME-$DEV_ID"
 
 # Deploy VM
 IP_ADDRESS=$(az vm create \
