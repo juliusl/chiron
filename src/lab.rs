@@ -1,11 +1,11 @@
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, path::PathBuf};
 
 use crate::{create_runtime, design::Design, host::Host};
 use futures_util::StreamExt;
 use lifec::{
     editor::RuntimeEditor,
-    plugins::{Plugin, Project, ThunkContext, Expect},
-    Runtime, AttributeGraph, RuntimeDispatcher, Value,
+    plugins::{Expect, Plugin, Project, ThunkContext},
+    AttributeGraph, Runtime, RuntimeDispatcher, Value,
 };
 use lifec_poem::WebApp;
 use poem::{
@@ -13,7 +13,7 @@ use poem::{
     get, handler,
     web::{
         websocket::{Message, WebSocket},
-        Data, Html, Path, Json,
+        Data, Html, Json, Path,
     },
     EndpointExt, IntoResponse, Route,
 };
@@ -76,7 +76,7 @@ impl WebApp for Lab {
         Route::new()
             .nest("/.run", EmbeddedFilesEndpoint::<Design>::new())
             .at("/:lab_name", get(index))
-            .at("/lab/:name", get(lab))
+            .at("/lab/:name", get(lab.data(self.0.clone())))
             .at("/lab/:name/status", get(lab_status.data(self.0.clone())))
             .at("/labs", get(labs))
             .at("/dispatch/:name", get(dispatch.data(self.0.clone())))
@@ -107,7 +107,7 @@ fn dispatch(
 }
 
 #[handler]
-async fn lab(Path(name): Path<String>) -> String {
+async fn lab(Path(name): Path<String>, dispatcher: Data<&ThunkContext>) -> String {
     if let Some(lab) = Design::get(format!("{name}/.runmd").as_str()) {
         match String::from_utf8(lab.data.to_vec()) {
             Ok(content) => content,
@@ -116,6 +116,13 @@ async fn lab(Path(name): Path<String>) -> String {
                 String::default()
             }
         }
+    } else if let Some(lab) = dispatcher.as_ref().find_binary(&name) {
+        String::from_utf8(lab).ok().unwrap_or_default()
+    } else if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
+        tokio::fs::read_to_string(PathBuf::from(lab_dir).join(name).join(".runmd"))
+            .await
+            .ok()
+            .unwrap_or_default()
     } else {
         String::default()
     }
@@ -124,17 +131,17 @@ async fn lab(Path(name): Path<String>) -> String {
 #[derive(Default, Deserialize, Serialize)]
 struct LabStatus {
     overview: String,
-    expectations: Vec<String>
+    expectations: Vec<String>,
 }
 
 #[handler]
-async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>,) -> Json<LabStatus> {
+async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>) -> Json<LabStatus> {
     if let Some(_lab) = Design::get(format!("{name}/.runmd").as_str()) {
         match String::from_utf8(_lab.data.to_vec()) {
             Ok(content) => {
                 let graph = AttributeGraph::from(0);
                 let graph = graph.batch(content).ok().unwrap_or_default();
-                let project = Project::from(graph); 
+                let project = Project::from(graph);
                 let mut status = LabStatus::default();
                 if let Some(block) = project.find_block(name) {
                     if let Some(lab_block) = block.get_block("lab") {
@@ -145,8 +152,8 @@ async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>,) 
 
                 for (block_name, block) in project.iter_block() {
                     if let Some(mut expect) = block.get_block("expect") {
-                        let mut deps = BTreeMap::<String, String>::default(); 
-                        
+                        let mut deps = BTreeMap::<String, String>::default();
+
                         for (name, value) in expect.clone().find_symbol_values("which") {
                             if Expect::should_expect(name, "which") {
                                 if let Value::TextBuffer(dep) = value {
@@ -162,26 +169,28 @@ async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>,) 
                                 Ok(result) => {
                                     if let Some(error_context) = result.get_errors() {
                                         for (name, error) in error_context.errors() {
-                                            if let Some(prev) = deps.insert(name.to_string(), error.to_string()) {
+                                            if let Some(prev) =
+                                                deps.insert(name.to_string(), error.to_string())
+                                            {
                                                 eprintln!("{name} {prev} -> {error}");
                                             }
                                         }
                                     }
-                                },
-                                Err(_) => {
-
-                                },
+                                }
+                                Err(_) => {}
                             }
                         }
 
                         for (name, dep_status) in deps {
-                            status.expectations.push(format!("{block_name} - {name} {dep_status}"));
+                            status
+                                .expectations
+                                .push(format!("{block_name} - {name} {dep_status}"));
                         }
                     }
                 }
 
                 Json(status)
-            },
+            }
             Err(err) => {
                 eprintln!("{err}");
                 Json(LabStatus::default())
