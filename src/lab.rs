@@ -78,7 +78,7 @@ impl WebApp for Lab {
             .at("/:lab_name", get(index))
             .at("/lab/:name", get(lab.data(self.0.clone())))
             .at("/lab/:name/status", get(lab_status.data(self.0.clone())))
-            .at("/labs", get(labs))
+            .at("/labs", get(labs.data(self.0.clone())))
             .at("/dispatch/:name", get(dispatch.data(self.0.clone())))
     }
 }
@@ -202,8 +202,21 @@ async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>) -
 }
 
 #[handler]
-fn labs() -> String {
-    Design::labs().join("\n")
+async fn labs(dispatcher: Data<&ThunkContext>) -> String {
+    let mut builtin = Design::labs();
+
+    let mut labs : Vec<String> = dispatcher.as_ref().iter_attributes().filter_map(|a| match a.value() {
+        Value::BinaryVector(_) => Some(a.name().to_string()),
+        _ => None,
+    }).collect();
+
+     builtin.append(&mut labs);
+
+    if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
+        builtin.append(&mut Design::find_labs(lab_dir).await);
+    }
+
+    builtin.join("\n")
 }
 
 #[handler]
