@@ -197,6 +197,37 @@ parseCodeBlock onRunmd details =
                             [ Element.text details.body ]
                         )
 
+                "runmd_create" ->
+                    Element.column [ spacing 20 ]
+                        [ formatCodeBlock <| Element.text details.body
+                        , button
+                            [ Font.size 14
+                            , Font.family [ Font.typeface "system-ui" ]
+                            , Border.color (rgb255 0x95 0xA5 0x8D)
+                            , Border.widthEach { left = 1, top = 0, right = 0, bottom = 0 }
+                            , padding 16
+                            , Element.mouseDown
+                                [ Background.color (rgb255 0x95 0xA5 0x8D)
+                                , Font.color (rgb255 0xFF 0xFF 0xFF)
+                                ]
+                            ]
+                            { onPress = Just (onRunmd details.body), label = Element.text "Create" }
+                        ]
+
+                "runmd_create_only" ->
+                    button
+                            [ Font.size 14
+                            , Font.family [ Font.typeface "system-ui" ]
+                            , Border.color (rgb255 0x95 0xA5 0x8D)
+                            , Border.widthEach { left = 1, top = 0, right = 0, bottom = 0 }
+                            , padding 16
+                            , Element.mouseDown
+                                [ Background.color (rgb255 0x95 0xA5 0x8D)
+                                , Font.color (rgb255 0xFF 0xFF 0xFF)
+                                ]
+                            ]
+                            { onPress = Just (onRunmd details.body), label = Element.text "Create" }
+
                 _ ->
                     formatCodeBlock (Element.text details.body)
 

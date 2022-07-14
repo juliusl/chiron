@@ -237,13 +237,7 @@ viewWorkspace model =
 viewActions : Model msg -> Element msg
 viewActions model =
     column
-        [ width
-            (if model.showWorkspace then
-                px 100
-
-             else
-                fillPortion 1
-            )
+        [ width (px 200)
         , height fill
         , defaultPadding
         ]

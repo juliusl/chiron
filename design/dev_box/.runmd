@@ -1,5 +1,9 @@
 # Background
 
+``` md
+``` default call
+define azure_devbox lab  .symbol azure_devbox
+```
 
 ## Cloud-init components
 - These are different components that can be installed with cloud_init
@@ -53,11 +57,19 @@ add enable_connection           .enable
 add node_title                  .text Package user data
 ```
 
-# Deploying to Azure 
+# Deploying to Azure
+- You can treat the following section like a template for your own devbox.
+``` md
+``` default call
+define azure_devbox lab  .symbol azure_devbox
+```
 
-``` azure_devbox runtime
-define user_data call .symbol deploy
-define deploy    call 
+``` azure_devbox lab
+define user_data     call .symbol deploy
+define deploy        call 
+add node_title      .text Create new azure devbox
+add description     .text Creates a new azure devbox
+add project_src     .text design/dev_box/.runmd
 ```
 
 ``` user_data call
@@ -67,6 +79,16 @@ define user_data make_mime .symbol package
 ``` deploy call
 define a_deploy install .symbol azure_vm
 define b_deploy remote  .symbol azure_vm
+```
+
+``` runmd
+``` azure_vm install
+add work_dir                      .text   .run/azure_vm
+add file_src                      .text   lib/sh/make-vm.sh
+add default_open                  .enable
+add enable_connection             .enable
+add description                   .text    Installs the make-vm script
+add node_title                    .text    Install make-vm script
 ```
 
 ``` runmd
@@ -92,10 +114,8 @@ add current_dir                 .text .run/azure_vm
 add description                 .text Create an Azure VM using the current user's .ssh config, and connect via ssh
 add caveats                     .text If an ssh key is not present, one will be generated via --generate_ssh_keys
 add node_title                  .text Deploy Azure VM
-``` install
-add work_dir                      .text   .run/azure_vm
-add file_src                      .text   lib/sh/make-vm.sh
 ```
+
 
 # Appendix
 
@@ -120,4 +140,36 @@ define powershell::windows  which   .text powershell
 
 ``` dev_box lab 
 add overview .text This lab will teach you how to customize a dev environment, using cloud_init parts.
+```
+
+## Basic container development 
+``` runmd
+``` basic_container make_mime
+add    work_dir             .text .config/cloud_init
+add    file_dst             .text .run/azure_vm/user_data
+define a_enter        part  .text enter-azure.yml_jinja2
+define b_azcli        part  .text install-azcli.yml_jinja2
+define c_golang       part  .text install-golang.yml_jinja2
+define d_docker       part  .text install-docker.yml_jinja2
+define e_exit         part  .text exit-azure.yml_jinja2
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Basic container development
+```
+
+## Kubernetes development 
+``` runmd
+``` kubernetes_dev make_mime
+add    work_dir             .text .config/cloud_init
+add    file_dst             .text .run/azure_vm/user_data
+define a_enter        part  .text enter-azure.yml_jinja2
+define b_azcli        part  .text install-azcli.yml_jinja2
+define c_golang       part  .text install-golang.yml_jinja2
+define d_docker       part  .text install-docker.yml_jinja2
+define e_helm         part  .text install-helm.yml_jinja2
+define f_kind         part  .text install-kind.yml_jinja2
+define g_exit         part  .text exit-azure.yml_jinja2
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Kubernetes development w/ KIND
 ```
