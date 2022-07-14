@@ -1,0 +1,13 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+runcmd:
+  - log_start az_cli
+  - curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+  - log_done az_cli
+  

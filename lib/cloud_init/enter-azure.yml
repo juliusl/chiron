@@ -16,6 +16,7 @@ packages:
   - jq
   - git
   - apt-transport-https
+  - libssl-dev
 runcmd:
   - log() { TIMESTAMP=`date +'%Y-%m-%d %T'`; echo "block\t$TIMESTAMP\t$1\t\t\t$2"; }
   - log_start() { log Starting $1; }

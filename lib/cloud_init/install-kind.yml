@@ -6,6 +6,9 @@ merge_how:
  - name: dict
    settings: [no_replace, recurse_list]
 
+packages:
+ - docker.io
+
 runcmd:
   - log_start kind
   - cd /home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}

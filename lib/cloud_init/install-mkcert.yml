@@ -1,0 +1,20 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+packages:
+ - libnss3-tools
+
+runcmd:
+  - log_start mkcert
+  - as_user 'git clone https://github.com/FiloSottile/mkcert ~/go/src/github.com/FiloSottile/mkcert'
+  - cd /home/{{ds.meta_data.imds.compute.osProfile.adminUsername}}/go/src/github.com/FiloSottile/mkcert
+  - as_user '/usr/local/go/bin/go build -ldflags "-X main.Version=$(git describe --tags)"'
+  - as_user 'cp mkcert ~/go/bin/'
+  - as_user ' ~/go/bin/mkcert -install'
+  - log_done mkcert
+  

@@ -1,0 +1,44 @@
+# Sets up a static file host for elm portal
+``` setup call
+define script install   .symbol script
+define index  install   .symbol index
+```
+
+``` host call
+define e_app static_files  .symbol main
+```
+
+# Portal files
+``` script install
+add node_title .text Script setup
+add work_dir   .text .run/portal
+add file_src   .text lib/elm/portal/elm.js
+```
+
+``` index install
+add node_title .text Index setup
+add work_dir   .text .run/portal
+add file_src   .text lib/elm/portal/index.html
+```
+
+# Portal host
+``` main static_files
+add address    .text localhost:3000
+add work_dir   .text .run/portal
+add index_html .text index.html
+add node_title .text Static Files Host 
+```
+
+``` req call
+define json_placeholder request .symbol req
+``` request
+add uri         .text https://jsonplaceholder.typicode.com/todos/1
+add method      .text GET
+add node_title  .text Test Json Request
+```
+
+``` print call
+define print println .symbol print
+``` println
+add node_title .text Println
+```

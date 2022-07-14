@@ -1,0 +1,19 @@
+## template: jinja
+#cloud-config
+merge_how:
+ - name: list
+   settings: [append]
+ - name: dict
+   settings: [no_replace, recurse_list]
+
+packages:
+  - apt-transport-https
+
+runcmd:
+  - log_start helm
+  - curl https://baltocdn.com/helm/signing.asc | apt-key add -
+  - echo "deb https://baltocdn.com/helm/stable/debian/ all main" | tee /etc/apt/sources.list.d/helm-stable-debian.list
+  - apt update
+  - apt install helm
+  - log_done helm
+  

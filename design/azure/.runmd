@@ -1,0 +1,47 @@
+# Azure development
+- This lab will include some common scenarios in azure and the blocks that address them.
+- It will include some examples, and how to assemble the blocks.
+
+## Create a resource group
+``` runmd
+``` resource_group remote
+add command .text az group create
+define RESOURCE_GROUP  env      .symbol  resource_group
+define VM_NAME         env      .symbol  vm_name
+define IMAGE           env      .symbol  image
+define LOCATION        env      .symbol  location
+define ADMIN_USERNAME  env      .symbol  admin_username
+define DEV_ID          env      .symbol  dev_id
+
+add resource_group              .text   rg_name
+add vm_name                     .text   vm_name
+add image                       .text   ubuntu
+add location                    .text   westus2
+add admin_username              .text   chief
+add dev_id                      .text   tgif5
+add edit_form                   .enable
+add default_open                .enable
+add enable_connection           .enable
+add current_dir                 .text .run/azure_vm
+add description                 .text Create an Azure VM using the current user's .ssh config, and connect via ssh
+add caveats                     .text If an ssh key is not present, one will be generated via --generate_ssh_keys
+add node_title                  .text Deploy Azure VM
+```
+
+## Configure and setup a virtual network
+
+
+# Appendix
+``` runmd
+``` required expect
+define az  which                .text az
+add stop_on_error               .enable
+add default_open                .enable
+add always_show                 .enable
+add enable_connection           .enable
+add node_title                  .text Check az env installed
+```
+
+``` azure lab 
+add overview .text This lab will include a collection of azure components, that can be configured and used ad-hoc.
+```
