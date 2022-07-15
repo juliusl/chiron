@@ -1,12 +1,20 @@
+use std::path::PathBuf;
+
 use lifec::{
     plugins::{combine, OpenFile, Plugin, ThunkContext, WriteFile},
     Component, DenseVecStorage,
 };
+use rust_embed::RustEmbed;
 
 /// Installs a file
 #[derive(Component, Default)]
 #[storage(DenseVecStorage)]
 pub struct Install;
+
+
+#[derive(RustEmbed)]
+#[folder = "lib/sh"]
+struct Shell;
 
 impl Plugin<ThunkContext> for Install {
     fn symbol() -> &'static str {
@@ -34,11 +42,28 @@ impl Plugin<ThunkContext> for Install {
                     return combine::<OpenFile, WriteFile>()(context);
                 }
             }
-        } else if let Some(_) = context.as_ref().find_text("file_src") {
+        } else if let Some(file_src) = context.as_ref().find_text("file_src") {
+            Self::resolve_lib_file(context, file_src);
+
             return combine::<OpenFile, WriteFile>()(context);
         }
 
         eprintln!("install skipped");
         None
+    }
+}
+
+
+impl Install {
+    fn resolve_lib_file(context: &mut ThunkContext, file_src: impl AsRef<str>) {
+        let path_buf = PathBuf::from(file_src.as_ref());
+        if !path_buf.exists() {
+            if file_src.as_ref().starts_with("lib/sh") {
+                let file_name = file_src.as_ref().trim_start_matches("lib/sh/");
+                if let Some(file) = Shell::get(file_name) {
+                    context.as_mut().add_binary_attr("content", file.data.to_vec());
+                }
+            }
+        }
     }
 }
