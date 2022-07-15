@@ -1,6 +1,11 @@
 # Getting Started
 - Install Rust, you can go here `https://rustup.rs/` to get rust
 
+- If you don't want to clone the repo, then run 
+```
+cargo install --git https://github.com/juliusl/chiron.git chiron
+```
+
 - If you just want to try it out, run 
 ```
 cargo run
