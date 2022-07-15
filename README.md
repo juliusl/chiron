@@ -1,5 +1,5 @@
 # Getting Started
-- Install Rust, you can go here `https://rustup.rs/` to get rust
+- Install Rust, you can go here: [rustup](https://rustup.rs/), to install rust
 
 - If you don't want to clone the repo, then run 
 ```
