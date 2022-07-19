@@ -7,6 +7,7 @@ use lifec::{
 };
 use shinsu::NodeEditor;
 use imgui::Window;
+use tracing_subscriber::EnvFilter;
 use std::env;
 
 mod cloud_init;
@@ -30,6 +31,11 @@ fn main() {
       
         let args: Vec<String> = env::args().collect();
         
+        tracing_subscriber::fmt::Subscriber::builder()
+            .with_env_filter(EnvFilter::from_default_env())
+            .compact()
+            .init();
+
         if let Some(arg) = args.get(1) {
             if arg == "--host" {
                 start(

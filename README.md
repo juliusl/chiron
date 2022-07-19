@@ -24,6 +24,22 @@ and then the tool will launch with just,
 chiron
 ```
 
+## Enable logging 
+To enable logging, set `RUST_LOG` env variable. 
+
+Here are some examples:
+```
+RUST_LOG=lifec=info  chiron
+RUST_LOG=lifec=debug chiron
+RUST_LOG=lifec=trace chiron
+
+// or 
+
+RUST_LOG=lifec=info  cargo run
+RUST_LOG=lifec=debug cargo run
+RUST_LOG=lifec=trace cargo run
+```
+
 Windows, macos, and linux are supported. 
 
 # Background
