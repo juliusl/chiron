@@ -1,6 +1,9 @@
 use imgui::{MenuItem, Window};
 use lifec::{
-    editor::{Call, RuntimeEditor, WindowEvent}, Runtime, AttributeGraph, World, Entity, DispatcherBuilder, Extension, WorldExt, RuntimeDispatcher,
+    editor::{Call, RuntimeEditor, WindowEvent},
+    plugins::CancelThunk,
+    AttributeGraph, DispatcherBuilder, Entity, Extension, Join, Runtime, RuntimeDispatcher, World,
+    WorldExt,
 };
 
 use crate::design::Design;
@@ -42,12 +45,12 @@ impl Host {
         }
     }
 
-    fn load_project_from_content(&mut self, content: impl AsRef<str>) -> bool{
+    fn load_project_from_content(&mut self, content: impl AsRef<str>) -> bool {
         let mut graph = AttributeGraph::from(0);
         if graph.batch_mut(content.as_ref()).is_ok() {
             *self.0.project_mut().as_mut() = graph;
             *self.0.project_mut() = self.0.project_mut().reload_source();
-            true 
+            true
         } else {
             false
         }
@@ -119,18 +122,26 @@ impl Extension for Host {
                 });
             });
 
-        Window::new("Start here").size([200.0, 100.0], imgui::Condition::Appearing).build(ui, ||{
-            if ui.button("Start help portal") {
-                if let Some(portal) = Design::get("portal/.runmd") {
-                    if let Some(data) = String::from_utf8(portal.data.to_vec()).ok() {
-                        if self.load_project_from_content(data) {
-                            self.create_default(app_world);
+        Window::new("Start here")
+            .size([300.0, 300.0], imgui::Condition::Appearing)
+            .build(ui, || {
+                if ui.button("Start help portal") {
+                    if let Some(portal) = Design::get("portal/.runmd") {
+                        if let Some(data) = String::from_utf8(portal.data.to_vec()).ok() {
+                            if self.load_project_from_content(data) {
+                                if let Some(created) = self.create_default(app_world) {
+                                    Runtime::start_event(created, app_world);
+                                }
+                            }
                         }
                     }
                 }
-            }
-        });
-        
+
+                ui.text_wrapped(
+                    "This will launch a portal that hosts interactive documentation for this tool",
+                );
+            });
+
         self.0.on_ui(app_world, ui);
     }
 
@@ -150,6 +161,14 @@ impl Extension for Host {
                         self.load_project(dropped_file_path.to_str().unwrap_or_default())
                     {
                         self.create_engine_parts(app_world);
+                    }
+                }
+            }
+            WindowEvent::CloseRequested => {
+                let mut cancel_source = app_world.write_component::<CancelThunk>();
+                for cancel_thunk in (&app_world.entities()).join() {
+                    if let Some(cancel_thunk) = cancel_source.remove(cancel_thunk) {
+                        cancel_thunk.0.send(()).ok();
                     }
                 }
             }
