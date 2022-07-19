@@ -1,3 +1,7 @@
+# Chiron
+
+![Chiron preview](assets/chiron_preview.gif)
+
 # Getting Started
 - Install Rust, you can go here: [rustup](https://rustup.rs/), to install rust
 
@@ -22,7 +26,7 @@ chiron
 
 Windows, macos, and linux are supported. 
 
-# Project Chiron
+# Background
 In Greek mythology Chiron was called the "wisest and justest of all the centaurs", and was the teacher and mentor to many heroes. His students included Achilles, Ajax, Heracles, Jason, Odysseus, Perseus, and many others. **Project Chiron** is a customizable platform designed to transform new developers into heroes. 
 
 The main goal is to make the process of setting up a developer environment accessible, educational, and productive. This is achieved by introducing two concepts, **components** and **labs**. 
