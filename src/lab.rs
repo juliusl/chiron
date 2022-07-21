@@ -5,7 +5,7 @@ use futures_util::StreamExt;
 use lifec::{
     editor::RuntimeEditor,
     plugins::{Expect, Plugin, Project, ThunkContext},
-    AttributeGraph, Runtime, RuntimeDispatcher, Value,
+    AttributeGraph, Resources, Runtime, RuntimeDispatcher, Value,
 };
 use lifec_poem::WebApp;
 use poem::{
@@ -18,17 +18,18 @@ use poem::{
     EndpointExt, IntoResponse, Route,
 };
 use serde::{Deserialize, Serialize};
+use tracing::{event, Level};
 
 /// Lab component hosts a portal for browsing .runmd in the design folder
 #[derive(Default)]
 pub struct Lab(ThunkContext);
 
 impl Lab {
-    fn get_project(project_src: impl AsRef<str>) -> Option<Project> {
+    async fn get_project(project_src: impl AsRef<str>) -> Option<Project> {
         if project_src.as_ref().starts_with("design/") {
-            let path = project_src.as_ref().trim_start_matches("design/");
-            if let Some(project) = Design::get(path) {
-                if let Some(content) = String::from_utf8(project.data.to_vec()).ok() {
+            let path = project_src.as_ref();
+            if let Some(content) = Resources("design").read_binary::<Design>(&ThunkContext::default(), &path.to_string()).await {
+                if let Some(content) = String::from_utf8(content.to_vec()).ok() {
                     if let Some(project) = Project::load_content(content) {
                         return Some(project);
                     }
@@ -37,6 +38,47 @@ impl Lab {
         }
 
         Project::load_file(project_src)
+    }
+
+    async fn resolve_lab_content(dispatcher: &ThunkContext, name: impl AsRef<str>) -> String {
+        let name = name.as_ref().to_string();
+
+        if let Some(_lab) = Resources("design")
+            .read_binary::<Design>(
+                &dispatcher,
+                &format!("design/{name}/.runmd").as_str().to_string(),
+            )
+            .await
+        {
+            match String::from_utf8(_lab.to_vec()) {
+                Ok(content) => return content,
+                Err(err) => {
+                    event!(Level::ERROR, "error reading embedded lab {err}");
+                }
+            }
+        }
+
+        if let Some(_lab) = dispatcher.as_ref().find_binary(&name) {
+            event!(Level::TRACE, "found lab in graph, {name}");
+            return String::from_utf8(_lab).ok().unwrap_or_default();
+        }
+
+        if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
+            let path = PathBuf::from(lab_dir).join(name).join(".runmd");
+            event!(Level::DEBUG, "trying to find lab at {:?}", path);
+            match tokio::fs::read_to_string(path).await {
+                Ok(content) => {
+                    event!(Level::TRACE, "read lab {content}");
+                    content
+                }
+                Err(err) => {
+                    event!(Level::ERROR, "Could not read lab {err}");
+                    String::default()
+                }
+            }
+        } else {
+            String::default()
+        }
     }
 }
 
@@ -54,7 +96,7 @@ impl Plugin<ThunkContext> for Lab {
             let mut tc = context.clone();
             async move {
                 if let Some(project_src) = tc.as_ref().find_text("project_src") {
-                    if let Some(project) = Self::get_project(project_src) {
+                    if let Some(project) = Self::get_project(project_src).await {
                         let block_name = tc.block.block_name.to_string();
                         if let Some(address) = tc.as_ref().find_text("address") {
                             let project =
@@ -125,24 +167,7 @@ fn dispatch(
 
 #[handler]
 async fn lab(Path(name): Path<String>, dispatcher: Data<&ThunkContext>) -> String {
-    if let Some(lab) = Design::get(format!("{name}/.runmd").as_str()) {
-        match String::from_utf8(lab.data.to_vec()) {
-            Ok(content) => content,
-            Err(err) => {
-                eprintln!("{err}");
-                String::default()
-            }
-        }
-    } else if let Some(lab) = dispatcher.as_ref().find_binary(&name) {
-        String::from_utf8(lab).ok().unwrap_or_default()
-    } else if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
-        tokio::fs::read_to_string(PathBuf::from(lab_dir).join(name).join(".runmd"))
-            .await
-            .ok()
-            .unwrap_or_default()
-    } else {
-        String::default()
-    }
+    Lab::resolve_lab_content(&dispatcher, name).await
 }
 
 #[derive(Default, Deserialize, Serialize)]
@@ -153,81 +178,76 @@ struct LabStatus {
 
 #[handler]
 async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>) -> Json<LabStatus> {
-    if let Some(_lab) = Design::get(format!("{name}/.runmd").as_str()) {
-        match String::from_utf8(_lab.data.to_vec()) {
-            Ok(content) => {
-                let graph = AttributeGraph::from(0);
-                let graph = graph.batch(content).ok().unwrap_or_default();
-                let project = Project::from(graph);
-                let mut status = LabStatus::default();
-                if let Some(block) = project.find_block(name) {
-                    if let Some(lab_block) = block.get_block("lab") {
-                        let overview = lab_block.find_text("overview").unwrap_or_default();
-                        status.overview = overview;
+    let content = Lab::resolve_lab_content(&dispatcher, &name).await;
+    let graph = AttributeGraph::from(0);
+    let graph = graph.batch(content).ok().unwrap_or_default();
+    let project = Project::from(graph);
+    let mut status = LabStatus::default();
+
+    event!(Level::DEBUG, "Looking for lab block for {name}");
+    event!(Level::TRACE, "Project Content\n{:#?}", project);
+    if let Some(block) = project.find_block(name) {
+        if let Some(lab_block) = block.get_block("lab") {
+            let overview = lab_block.find_text("overview").unwrap_or_default();
+            status.overview = overview;
+        }
+    }
+
+    for (block_name, block) in project.iter_block() {
+        if let Some(mut expect) = block.get_block("expect") {
+            let mut deps = BTreeMap::<String, String>::default();
+
+            for (name, value) in expect.clone().find_symbol_values("which") {
+                if Expect::should_expect(name, "which") {
+                    if let Value::TextBuffer(dep) = value {
+                        deps.insert(dep, "ok".to_string());
                     }
                 }
-
-                for (block_name, block) in project.iter_block() {
-                    if let Some(mut expect) = block.get_block("expect") {
-                        let mut deps = BTreeMap::<String, String>::default();
-
-                        for (name, value) in expect.clone().find_symbol_values("which") {
-                            if Expect::should_expect(name, "which") {
-                                if let Value::TextBuffer(dep) = value {
-                                    deps.insert(dep, "ok".to_string());
-                                }
-                            }
-                        }
-
-                        let mut dispatcher = dispatcher.clone();
-                        *dispatcher.as_mut() = expect;
-                        if let Some(task) = Expect::call_with_context(&mut dispatcher) {
-                            match task.0.await {
-                                Ok(result) => {
-                                    if let Some(error_context) = result.get_errors() {
-                                        for (name, error) in error_context.errors() {
-                                            if let Some(prev) =
-                                                deps.insert(name.to_string(), error.to_string())
-                                            {
-                                                eprintln!("{name} {prev} -> {error}");
-                                            }
-                                        }
-                                    }
-                                }
-                                Err(_) => {}
-                            }
-                        }
-
-                        for (name, dep_status) in deps {
-                            status
-                                .expectations
-                                .push(format!("{block_name} - {name} {dep_status}"));
-                        }
-                    }
-                }
-
-                Json(status)
             }
-            Err(err) => {
-                eprintln!("{err}");
-                Json(LabStatus::default())
+
+            let mut dispatcher = dispatcher.clone();
+            *dispatcher.as_mut() = expect;
+            if let Some(task) = Expect::call_with_context(&mut dispatcher) {
+                match task.0.await {
+                    Ok(result) => {
+                        if let Some(error_context) = result.get_errors() {
+                            for (name, error) in error_context.errors() {
+                                if let Some(prev) = deps.insert(name.to_string(), error.to_string())
+                                {
+                                    eprintln!("{name} {prev} -> {error}");
+                                }
+                            }
+                        }
+                    }
+                    Err(_) => {}
+                }
+            }
+
+            for (name, dep_status) in deps {
+                status
+                    .expectations
+                    .push(format!("{block_name} - {name} {dep_status}"));
             }
         }
-    } else {
-        Json(LabStatus::default())
     }
+
+    Json(status)
 }
 
 #[handler]
 async fn labs(dispatcher: Data<&ThunkContext>) -> String {
     let mut builtin = Design::labs();
 
-    let mut labs : Vec<String> = dispatcher.as_ref().iter_attributes().filter_map(|a| match a.value() {
-        Value::BinaryVector(_) => Some(a.name().to_string()),
-        _ => None,
-    }).collect();
+    let mut labs: Vec<String> = dispatcher
+        .as_ref()
+        .iter_attributes()
+        .filter_map(|a| match a.value() {
+            Value::BinaryVector(_) => Some(a.name().to_string()),
+            _ => None,
+        })
+        .collect();
 
-     builtin.append(&mut labs);
+    builtin.append(&mut labs);
 
     if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
         builtin.append(&mut Design::find_labs(lab_dir).await);

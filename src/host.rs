@@ -1,9 +1,9 @@
 use imgui::{MenuItem, Window};
 use lifec::{
     editor::{Call, RuntimeEditor, WindowEvent},
-    plugins::CancelThunk,
-    AttributeGraph, DispatcherBuilder, Entity, Extension, Join, Runtime, RuntimeDispatcher, World,
-    WorldExt,
+    plugins::{CancelThunk, ThunkContext},
+    AttributeGraph, DispatcherBuilder, Entity, Extension, Join, Resources, Runtime,
+    RuntimeDispatcher, World, WorldExt,
 };
 
 use crate::design::Design;
@@ -126,15 +126,25 @@ impl Extension for Host {
             .size([300.0, 300.0], imgui::Condition::Appearing)
             .build(ui, || {
                 if ui.button("Start help portal") {
-                    if let Some(portal) = Design::get("portal/.runmd") {
-                        if let Some(data) = String::from_utf8(portal.data.to_vec()).ok() {
-                            if self.load_project_from_content(data) {
-                                if let Some(created) = self.create_default(app_world) {
-                                    Runtime::start_event(created, app_world);
+                    let tokio_runtime = app_world.read_resource::<tokio::runtime::Runtime>();
+
+                    tokio_runtime.block_on(async {
+                        if let Some(portal) = Resources("design")
+                            .read_binary::<Design>(
+                                &ThunkContext::default(),
+                                &"design/portal/.runmd".to_string(),
+                            )
+                            .await
+                        {
+                            if let Some(data) = String::from_utf8(portal.to_vec()).ok() {
+                                if self.load_project_from_content(data) {
+                                    if let Some(created) = self.create_default(app_world) {
+                                        Runtime::start_event(created, app_world);
+                                    }
                                 }
                             }
                         }
-                    }
+                    });
                 }
 
                 ui.text_wrapped(

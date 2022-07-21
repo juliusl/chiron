@@ -1,0 +1,48 @@
+# Azure development
+- This lab will include some common scenarios in azure and the blocks that address them.
+- It will include some examples, and how to assemble the blocks.
+
+## Create a resource group
+- The following block creates a resource group. Below is a redirect block that you can use to redirect the output to a .json file.
+``` runmd_create
+``` resource_group process
+add command .text az group create
+define resource-group  arg      .symbol  resource_group
+define location        arg      .symbol  location
+
+add resource_group              .text   rg_name
+add location                    .text   westus2
+add edit_form                   .enable
+add default_open                .enable
+add enable_connection           .enable
+add description                 .text Creates a resource group in azure
+add node_title                  .text Create resource group
+```
+
+- Connect the above block to this one in order to redirect the output
+``` runmd_create
+``` resource_group redirect
+add redirect_stdout .text resource_group.json
+add redirect_stderr .text resource_group_err.log
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Redirect resource_group to .json
+```
+
+## Configure and setup a virtual network
+
+
+# Appendix
+``` runmd
+``` required expect
+define az  which                .text az
+add stop_on_error               .enable
+add default_open                .enable
+add always_show                 .enable
+add enable_connection           .enable
+add node_title                  .text Check az env installed
+```
+
+``` azure lab 
+add overview .text This lab will include a collection of azure components, that can be configured and used ad-hoc.
+```

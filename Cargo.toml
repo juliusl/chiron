@@ -28,3 +28,4 @@ rust-embed = { version = "6.4.0", features = ["compression"] }
 futures-util = "0.3.21"
 serde_json = "1.0.82"
 tracing-subscriber =  { version = "0.3", features = [ "env-filter" ] }
+tracing = "0.1.35"
