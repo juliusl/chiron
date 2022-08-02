@@ -6,6 +6,7 @@ use lifec::{
     *
 };
 use lifec_registry::{Authenticate, Login, Resolve, MirrorHost};
+use lifec_shell::Shell;
 use shinsu::NodeEditor;
 use imgui::Window;
 use tracing_subscriber::EnvFilter;
@@ -52,10 +53,12 @@ fn main() {
         } else {
             open("chiron", 
             Empty, 
-            Main(
-                Host::from(runtime), 
-                NodeEditor::default()
-            ))
+                combine(Main(
+                    Host::from(runtime), 
+                    NodeEditor::default()
+                ), 
+                Shell::default())
+            )
         }
     }
 }
@@ -172,6 +175,10 @@ struct Empty;
 impl App for Empty {
     fn name() -> &'static str {
         "empty"
+    }
+
+    fn enable_depth_stencil<'a>(&self) -> bool {
+        true
     }
 
     fn edit_ui(&mut self, _: &imgui::Ui) {
