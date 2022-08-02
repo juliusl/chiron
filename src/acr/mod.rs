@@ -101,7 +101,6 @@ impl Acr {
                     .and_then(|b| serde_json::from_slice::<ReferrersResponse>(&b).ok())
                 {
                     event!(Level::DEBUG, "found referrers, {:#?}", referrers);
-
                     todo!()
                 } else {
                     event!(Level::DEBUG, "no referrers attribute was found");
@@ -117,9 +116,10 @@ impl Acr {
                 ..
             } => {
                 if let Some(manifest) = tc.as_ref().find_binary("manifest") {
+                    let content_type = tc.as_ref().find_text("content-type").unwrap_or_default();
                     Response::builder()
                         .status(StatusCode::OK)
-                        .content_type("text/json; charset=utf8")
+                        .content_type(content_type)
                         .body(manifest)
                 } else {
                     // Fall-back response
