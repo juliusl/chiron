@@ -116,7 +116,7 @@ impl Acr {
                 ..
             } => {
                 if let Some(manifest) = tc.as_ref().find_binary("manifest") {
-                    let content_type = tc.as_ref().find_text("content-type").unwrap_or_default();
+                    let content_type = tc.as_ref().find_text("content-type").unwrap_or("application/vnd.docker.distribution.manifest.list.v2+json".to_string());
                     Response::builder()
                         .status(StatusCode::OK)
                         .content_type(content_type)
