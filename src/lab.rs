@@ -3,7 +3,7 @@ use std::{collections::BTreeMap, path::PathBuf};
 use crate::{create_runtime, design::Design, host::Host};
 use futures_util::StreamExt;
 use lifec::{
-    editor::RuntimeEditor,
+    editor::{RuntimeEditor, Call},
     plugins::{Expect, Plugin, Project, ThunkContext},
     AttributeGraph, Resources, Runtime, RuntimeDispatcher, Value,
 };
@@ -115,7 +115,12 @@ impl Plugin<ThunkContext> for Lab {
                             let mut extension = Host::from(runtime_editor);
 
                             tc.as_mut().add_bool_attr("proxy_dispatcher", true);
-                            Runtime::start_with(&mut extension, Lab::symbol(), &tc, cancel_source);
+                            Runtime::start_with::<Host, Call>(
+                                &mut extension, 
+                                Lab::symbol().to_string(),
+                                 &tc, 
+                                 cancel_source
+                            );
                         }
                     }
                 }
@@ -155,7 +160,7 @@ fn dispatch(
         tokio::spawn(async move {
             while let Some(Ok(msg)) = stream.next().await {
                 if let Message::Text(mut text) = msg {
-                    eprintln!("{name} dispatched a message: \n{text}");
+                    event!(Level::TRACE, "{name} dispatched a message: \n{text}");
                     let proxy_message = format!("{text}\nadd proxy .enable");
 
                     dispatcher.dispatch(proxy_message).await;

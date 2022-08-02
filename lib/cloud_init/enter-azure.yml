@@ -26,4 +26,5 @@ runcmd:
   - AWK_TAG_PROG='{print $2}'
   - 'get_tag() { echo "{{ds.meta_data.imds.compute.tags}};" | awk -F: "$AWK_TAG_BEGIN /$1/ $AWK_TAG_PROG"; }'
   - export DEV_ID=$(get_tag dev_id)
+  # - export REGISTRY=$(get_tag registry)
   - log Configuring {{ds.meta_data.imds.compute.name}}-$DEV_ID.{{ds.meta_data.imds.compute.location}}.cloudapp.azure.com

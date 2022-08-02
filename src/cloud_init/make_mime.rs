@@ -8,10 +8,13 @@ use lifec::{
 };
 use mime_multipart::{generate_boundary, write_multipart, Node, Part};
 use phf::phf_map;
+use tracing::{event, Level};
 use std::{collections::hash_map::DefaultHasher, hash::Hasher, path::PathBuf};
 use tokio::io::{self, AsyncWriteExt};
 
 use crate::cloud_init::UserData;
+
+use super::find_parts;
 
 #[derive(Component, Default)]
 #[storage(DenseVecStorage)]
@@ -32,8 +35,15 @@ impl Plugin<ThunkContext> for MakeMime {
             async move {
                 if let Some(work_dir) = tc.as_ref().find_text("work_dir") {
                     if let Some(file_dst) = tc.as_ref().find_text("file_dst") {
-                        tc.update_status_only(format!("writing user_data to {file_dst}")).await;
-                        tokio::fs::create_dir_all(PathBuf::from(&file_dst).parent().expect("couldn't create dirs")).await.ok();
+                        tc.update_status_only(format!("writing user_data to {file_dst}"))
+                            .await;
+                        tokio::fs::create_dir_all(
+                            PathBuf::from(&file_dst)
+                                .parent()
+                                .expect("couldn't create dirs"),
+                        )
+                        .await
+                        .ok();
 
                         match tokio::fs::OpenOptions::new()
                             .write(true)
@@ -42,28 +52,26 @@ impl Plugin<ThunkContext> for MakeMime {
                             .await
                         {
                             Ok(file) => {
-                                let mut parts = vec![];
-                                for (_, part_value) in tc.as_ref().find_symbol_values("part") {
-                                    if let lifec::Value::TextBuffer(part_value) = part_value {
-                                        tc.update_status_only(format!("adding {part_value}")).await;
-                                        parts.push(part_value);
+                                match Self::make_mime(find_parts(&tc).await, work_dir, file).await {
+                                    Ok(_) => {
+                                        event!(Level::TRACE, "created cloud_init mime package");
                                     }
-                                }
-
-                                match Self::make_mime(parts, work_dir, file).await {
-                                    Ok(_) => {}
                                     Err(err) => {
-                                        eprintln!("error: {}", err);
+                                        event!(Level::ERROR, "error: {}", err);
                                     }
                                 }
                             }
                             Err(err) => {
                                 eprintln!("{err}");
-                            },
+                            }
                         }
 
                         if let Some(dir) = PathBuf::from(file_dst).parent() {
-                            let dir = dir.to_str().unwrap_or_default().trim_end_matches('"').to_string();
+                            let dir = dir
+                                .to_str()
+                                .unwrap_or_default()
+                                .trim_end_matches('"')
+                                .to_string();
 
                             tc.as_mut().add_text_attr("current_dir", dir);
                         }
@@ -77,7 +85,10 @@ impl Plugin<ThunkContext> for MakeMime {
 }
 
 impl MakeMime {
-    async fn get_userdata_content(work_dir: impl AsRef<str>, file_name: impl AsRef<str>) -> Option<String> {
+    async fn get_userdata_content(
+        work_dir: impl AsRef<str>,
+        file_name: impl AsRef<str>,
+    ) -> Option<String> {
         let file_path = PathBuf::from(work_dir.as_ref()).join(file_name.as_ref());
 
         eprintln!("Trying to find part from path {:?}", file_path);
@@ -89,7 +100,7 @@ impl MakeMime {
         }
 
         tokio::fs::read_to_string(&file_path).await.ok()
-    } 
+    }
 
     async fn make_mime(
         parts: Vec<String>,
@@ -117,9 +128,7 @@ impl MakeMime {
                         }
                         Err(_) => {}
                     },
-                    _ => {
-
-                    }
+                    _ => {}
                 }
             }
         }

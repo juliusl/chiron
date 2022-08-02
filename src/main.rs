@@ -5,6 +5,7 @@ use lifec::{
     editor::{Call, Fix},
     *
 };
+use lifec_registry::{Authenticate, Login, Resolve, MirrorHost};
 use shinsu::NodeEditor;
 use imgui::Window;
 use tracing_subscriber::EnvFilter;
@@ -13,6 +14,7 @@ use std::env;
 mod cloud_init;
 use cloud_init::MakeMime;
 use cloud_init::ReadMime;
+use cloud_init::Installer;
 
 mod install;
 use install::Install;
@@ -24,6 +26,9 @@ mod lab;
 use lab::Lab;
 
 mod design;
+
+mod acr;
+use acr::Acr;
 
 fn main() {
     if let Some(project) = Project::runmd() {
@@ -85,13 +90,16 @@ fn create_runtime(project: Project) -> Runtime {
     // this adds a "request" plugin to make https requests
     runtime.install::<Call, HyperContext>();
 
-    // --- chiron plugins ---
-    // -- Install plugin
-    runtime.install::<Call, Install>();
-    // -- Cloud-init plugins
+    // -- lifec_registry plugins -- 
+    runtime.install::<Call, Login>();
+    runtime.install::<Call, Authenticate>();
+    runtime.install::<Call, Resolve>();
+    runtime.install::<Call, MirrorHost<Acr>>();
+
+    // -- Cloud-init plugins --
     runtime.install::<Call, MakeMime>();
     runtime.install::<Call, ReadMime>();
-    runtime.install::<Call, Lab>();
+    runtime.install::<Call, Installer>();
 
     // -- Cloud-init configs
     runtime.add_config(Config("cloud_init", |tc| {
@@ -107,6 +115,10 @@ fn create_runtime(project: Project) -> Runtime {
         tc.as_mut().add_text_attr("src_type", "enter");
         cloud_init::env(tc);
     }));
+
+    // --- chiron plugins ---
+    runtime.install::<Call, Install>();
+    runtime.install::<Call, Lab>();
 
     // common default configs
     runtime.add_config(Config("empty", |_| {}));

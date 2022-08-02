@@ -31,6 +31,49 @@ add node_title                  .text Redirect resource_group to .json
 
 ## Configure and setup a virtual network
 
+## Login to ACR from python3
+- There are cases when you want to run az-cli directly from python
+- For example az-cli isn't supported on ARM
+- This example will run a script to get an access token from az cli, using python
+
+``` runmd_create
+``` acr_login install
+add work_dir                      .text   .run/acr_login
+add file_src                      .text   lib/sh/acr-login.sh
+add default_open                  .enable
+add enable_connection             .enable
+add description                   .text    Installs the acr-login script
+add node_title                    .text    Install acr-login script
+```
+
+``` runmd_create
+``` acr_login process
+add  command .text sh acr-login.sh
+
+add current_dir                 .text .run/acr_login
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Login to ACR
+```
+
+- Useful to inspect the result of the script
+``` runmd_create
+``` acr_login_token println
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Print acr_login output
+```
+
+- Useful to get the token to a file 
+``` runmd_create
+``` acr_login_token redirect
+add redirect_stdout             .text acr_token
+add redirect_stderr             .text acr.log
+add work_dir                    .text .run/acr_login
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Redirect acr_login output
+```
 
 # Appendix
 ``` runmd

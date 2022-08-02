@@ -14,8 +14,13 @@ write_files:
       "address": "/run/overlaybd-snapshotter/overlaybd.sock"
     }
    path: /etc/overlaybd-snapshotter/config.json
- # Configure proxy plugin for containerd
+ # Configure 
+ # - Proxy plugin for containerd
+ # - Enable hosts.toml
  - content: |
+    # TODO
+    # config_path = "/etc/containerd/certs.d"
+
     [proxy_plugins.overlaybd]
       type = "snapshot"
       address = "/run/overlaybd-snapshotter/overlaybd.sock"
