@@ -115,12 +115,12 @@ impl Acr {
                 enable_resolver: true,
                 ..
             } => {
-                if let Some(manifest) = tc.as_ref().find_binary("manifest") {
+                if let Some(body) = tc.as_ref().find_binary("body") {
                     let content_type = tc.as_ref().find_text("content-type").unwrap_or("application/vnd.docker.distribution.manifest.list.v2+json".to_string());
                     Response::builder()
                         .status(StatusCode::OK)
                         .content_type(content_type)
-                        .body(manifest)
+                        .body(body)
                 } else {
                     // Fall-back response
                     Response::builder()
