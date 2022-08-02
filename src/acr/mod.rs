@@ -85,6 +85,10 @@ pub struct ReferrersResponse {
 impl Acr {
     // Handles conditions for
     fn resolve(&self, tc: &ThunkContext) -> poem::Response {
+        event!(
+            Level::DEBUG,
+            "resolving mirror response"
+        );
         match self {
             Self {
                 enable_teleport: true,
