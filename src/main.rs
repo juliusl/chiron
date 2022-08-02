@@ -49,6 +49,13 @@ fn main() {
                 &[
                     "host",
                 ]);
+            } else if arg == "--mirror" {
+                start(
+                    Host::from(runtime),
+                    &[
+                        "mirror",
+                    ]
+                )
             }
         } else {
             open("chiron", 
