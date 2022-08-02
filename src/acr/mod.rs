@@ -71,7 +71,7 @@ pub struct ArtifactManifest {
 pub struct Platform {
     architecture: String,
     os: String,
-    variant: Option<String>
+    variant: Option<String>,
 }
 
 /// Format of the response from the "referrers" api
@@ -85,7 +85,6 @@ pub struct ReferrersResponse {
 impl Acr {
     // Handles conditions for
     fn resolve(&self, tc: &ThunkContext) -> poem::Response {
-        eprintln!("{:?}", tc.as_ref().find_binary("manifest"));
         match self {
             Self {
                 enable_teleport: true,
@@ -117,11 +116,17 @@ impl Acr {
                 enable_resolver: true,
                 ..
             } => {
-                event!(Level::DEBUG, "no referrers attribute was found");
-                // Fall-back response
-                Response::builder()
-                    .status(StatusCode::SERVICE_UNAVAILABLE)
-                    .finish()
+                if let Some(manifest) = tc.as_ref().find_binary("manifest") {
+                    Response::builder()
+                        .status(StatusCode::OK)
+                        .content_type("text/json; charset=utf8")
+                        .body(manifest)
+                } else {
+                    // Fall-back response
+                    Response::builder()
+                        .status(StatusCode::SERVICE_UNAVAILABLE)
+                        .finish()
+                }
             }
             // Fall-back response
             _ => {
@@ -148,10 +153,7 @@ impl From<AttributeGraph> for Acr {
 
 impl MirrorEvent for Acr {
     fn resolve_response(tc: &lifec::plugins::ThunkContext) -> poem::Response {
-        event!(
-            Level::DEBUG,
-            "resolving mirror response"
-        );
+        event!(Level::DEBUG, "resolving mirror response");
         Acr::from(tc.as_ref().clone()).resolve(tc)
     }
 
