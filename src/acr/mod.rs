@@ -85,10 +85,7 @@ pub struct ReferrersResponse {
 impl Acr {
     // Handles conditions for
     fn resolve(&self, tc: &ThunkContext) -> poem::Response {
-        event!(
-            Level::DEBUG,
-            "resolving mirror response"
-        );
+        eprintln!("{:?}", tc.as_ref().find_binary("manifest"));
         match self {
             Self {
                 enable_teleport: true,
@@ -151,6 +148,10 @@ impl From<AttributeGraph> for Acr {
 
 impl MirrorEvent for Acr {
     fn resolve_response(tc: &lifec::plugins::ThunkContext) -> poem::Response {
+        event!(
+            Level::DEBUG,
+            "resolving mirror response"
+        );
         Acr::from(tc.as_ref().clone()).resolve(tc)
     }
 
