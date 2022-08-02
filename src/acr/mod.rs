@@ -85,6 +85,14 @@ pub struct ReferrersResponse {
 impl Acr {
     // Handles conditions for
     fn resolve(&self, tc: &ThunkContext) -> poem::Response {
+        if let Some(referrers) = tc
+        .as_ref()
+        .find_binary("referrers")
+        .and_then(|b| serde_json::from_slice::<ReferrersResponse>(&b).ok())
+        {
+            event!(Level::TRACE, "found referrers, {:#?}", referrers);
+        }
+
         match self {
             Self {
                 enable_teleport: true,

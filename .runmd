@@ -36,6 +36,7 @@ add node_title                  .text Redirect acr_login output
 add address                     .text localhost:5000
 add file_src                    .text .run/acr_login/acr_token
 - add enable_teleport             .enable
+add artifact_type               .text dadi.image.v1
 add enable_resolver             .enable
 add enable_char_device          .enable
 add default_open                .enable
