@@ -90,7 +90,7 @@ impl Acr {
         .find_binary("referrers")
         .and_then(|b| serde_json::from_slice::<ReferrersResponse>(&b).ok())
         {
-            event!(Level::TRACE, "found referrers, {:#?}", referrers);
+            event!(Level::DEBUG, "found referrers content, {:#?}", referrers);
         }
 
         match self {
