@@ -124,10 +124,17 @@ impl Acr {
                 ..
             } => {
                 if let Some(body) = tc.as_ref().find_binary("body") {
-                    let content_type = tc.as_ref().find_text("content-type").unwrap_or("application/vnd.docker.distribution.manifest.list.v2+json".to_string());
+                    let content_type = tc.as_ref()
+                        .find_text("content-type")
+                        .unwrap_or("application/vnd.docker.distribution.manifest.list.v2+json".to_string());
+                    let digest = tc.as_ref()
+                        .find_text("digest")
+                        .unwrap_or_default();
+
                     Response::builder()
                         .status(StatusCode::OK)
                         .content_type(content_type)
+                        .header("Docker-Content-Digest", digest)
                         .body(body)
                 } else {
                     // Fall-back response
