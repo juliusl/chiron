@@ -44,19 +44,21 @@ impl Lab {
         let name = name.as_ref().to_string();
 
         if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
-            let path = PathBuf::from(lab_dir).join(name).join(".runmd");
+            let path = PathBuf::from(lab_dir).join(&name).join(".runmd");
             event!(Level::DEBUG, "trying to find lab at {:?}", path);
             match tokio::fs::read_to_string(path).await {
                 Ok(content) => {
                     event!(Level::TRACE, "read lab {content}");
-                    content
+                    return content;
                 }
                 Err(err) => {
                     event!(Level::ERROR, "Could not read lab {err}");
-                    String::default()
+                    //String::default()
                 }
             }
-        } else if let Some(_lab) = Resources("design")
+        } 
+        
+        if let Some(_lab) = Resources("design")
             .read_binary::<Design>(
                 &dispatcher,
                 &format!("design/{name}/.runmd").as_str().to_string(),
@@ -64,15 +66,16 @@ impl Lab {
             .await
         {
             match String::from_utf8(_lab.to_vec()) {
-                Ok(content) => content,
+                Ok(content) => return content,
                 Err(err) => {
                     event!(Level::ERROR, "error reading embedded lab {err}");
-                    String::default()
                 }
             }
-        } else if let Some(_lab) = dispatcher.as_ref().find_binary(&name) {
+        } 
+        
+        if let Some(_lab) = dispatcher.as_ref().find_binary(&name) {
             event!(Level::TRACE, "found lab in graph, {name}");
-             String::from_utf8(_lab).ok().unwrap_or_default()
+            String::from_utf8(_lab).ok().unwrap_or_default()
         } else {
             String::default()
         }
