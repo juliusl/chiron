@@ -243,6 +243,13 @@ async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>) -
 async fn labs(dispatcher: Data<&ThunkContext>) -> String {
     let mut builtin = Design::labs();
 
+    if dispatcher.as_ref().is_enabled("skip_builtin").unwrap_or_default() {
+        builtin = builtin.iter()
+            .filter(|b| b.starts_with("portal"))
+            .map(|l| l.to_string())
+            .collect::<Vec<_>>();
+    }
+
     let mut labs: Vec<String> = dispatcher
         .as_ref()
         .iter_attributes()
