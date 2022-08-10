@@ -19,9 +19,10 @@ pub struct Acr {
     enable_resolver: bool,
 }
 
-/// Registry descriptor data schema
+/// Registry descriptor data layout
 ///
-/// A descriptor is a common specification registries use to reference content,
+/// A descriptor is a common specification registries use to reference content, this struct is a 
+/// combination of different descriptor layouts into a single layout.
 ///
 /// Caveat: The content of a descriptor matters, once a client pushes a descriptor to a registry,
 /// **no** fields may change, this will change the effective content digest.
@@ -46,6 +47,15 @@ pub struct Descriptor {
     platform: Option<Platform>,
 }
 
+/// Platform field of an image descriptor
+/// 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Platform {
+    architecture: String,
+    os: String,
+    variant: Option<String>,
+}
+
 /// Manifest struct for stored artifacts related to an image
 ///
 /// Artifacts are data related to the image, but that are not directly part of any of the
@@ -65,13 +75,6 @@ pub struct ArtifactManifest {
     blobs: Vec<Descriptor>,
     #[serde(rename = "subject")]
     subject: Descriptor,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Platform {
-    architecture: String,
-    os: String,
-    variant: Option<String>,
 }
 
 /// Format of the response from the "referrers" api
@@ -126,10 +129,10 @@ impl Acr {
                 if let Some(body) = tc.as_ref().find_binary("body") {
                     let content_type = tc.as_ref()
                         .find_text("content-type")
-                        .unwrap_or("application/vnd.docker.distribution.manifest.list.v2+json".to_string());
+                        .expect("A content type should've been provided");
                     let digest = tc.as_ref()
                         .find_text("digest")
-                        .unwrap_or_default();
+                        .expect("A digest should've been provided");
 
                     Response::builder()
                         .status(StatusCode::OK)
@@ -169,7 +172,8 @@ impl From<AttributeGraph> for Acr {
 impl MirrorEvent for Acr {
     fn resolve_response(tc: &lifec::plugins::ThunkContext) -> poem::Response {
         event!(Level::DEBUG, "resolving mirror response");
-        Acr::from(tc.as_ref().clone()).resolve(tc)
+        Acr::from(tc.as_ref().clone())
+            .resolve(tc)
     }
 
     fn resolve_error(err: String, _: &lifec::plugins::ThunkContext) -> poem::Response {
