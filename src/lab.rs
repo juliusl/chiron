@@ -43,6 +43,21 @@ impl Lab {
     async fn resolve_lab_content(dispatcher: &ThunkContext, name: impl AsRef<str>) -> String {
         let name = name.as_ref().to_string();
 
+        if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
+            let path = PathBuf::from(lab_dir).join(&name).join(".runmd");
+            event!(Level::DEBUG, "trying to find lab at {:?}", path);
+            match tokio::fs::read_to_string(path).await {
+                Ok(content) => {
+                    event!(Level::TRACE, "read lab {content}");
+                    return content;
+                }
+                Err(err) => {
+                    event!(Level::ERROR, "Could not read lab {err}");
+                    //String::default()
+                }
+            }
+        } 
+        
         if let Some(_lab) = Resources("design")
             .read_binary::<Design>(
                 &dispatcher,
@@ -56,26 +71,11 @@ impl Lab {
                     event!(Level::ERROR, "error reading embedded lab {err}");
                 }
             }
-        }
-
+        } 
+        
         if let Some(_lab) = dispatcher.as_ref().find_binary(&name) {
             event!(Level::TRACE, "found lab in graph, {name}");
-            return String::from_utf8(_lab).ok().unwrap_or_default();
-        }
-
-        if let Some(lab_dir) = dispatcher.as_ref().find_text("lab_dir") {
-            let path = PathBuf::from(lab_dir).join(name).join(".runmd");
-            event!(Level::DEBUG, "trying to find lab at {:?}", path);
-            match tokio::fs::read_to_string(path).await {
-                Ok(content) => {
-                    event!(Level::TRACE, "read lab {content}");
-                    content
-                }
-                Err(err) => {
-                    event!(Level::ERROR, "Could not read lab {err}");
-                    String::default()
-                }
-            }
+            String::from_utf8(_lab).ok().unwrap_or_default()
         } else {
             String::default()
         }
@@ -242,6 +242,13 @@ async fn lab_status(Path(name): Path<String>, dispatcher: Data<&ThunkContext>) -
 #[handler]
 async fn labs(dispatcher: Data<&ThunkContext>) -> String {
     let mut builtin = Design::labs();
+
+    if dispatcher.as_ref().is_enabled("skip_builtin").unwrap_or_default() {
+        builtin = builtin.iter()
+            .filter(|b| b.starts_with("portal"))
+            .map(|l| l.to_string())
+            .collect::<Vec<_>>();
+    }
 
     let mut labs: Vec<String> = dispatcher
         .as_ref()

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use lifec::{
     plugins::{combine, OpenFile, Plugin, ThunkContext, WriteFile},
-    Component, DenseVecStorage,
+    Component, DenseVecStorage, Resources,
 };
 use rust_embed::RustEmbed;
 
@@ -43,7 +43,12 @@ impl Plugin<ThunkContext> for Install {
                 }
             }
         } else if let Some(file_src) = context.as_ref().find_text("file_src") {
-            Self::resolve_lib_file(context, file_src);
+
+            if let Some(handle) = context.handle() {
+                handle.block_on(async {
+                    Self::resolve_lib_file(context, file_src).await;
+                });
+            }
 
             return combine::<OpenFile, WriteFile>()(context);
         }
@@ -55,13 +60,13 @@ impl Plugin<ThunkContext> for Install {
 
 
 impl Install {
-    fn resolve_lib_file(context: &mut ThunkContext, file_src: impl AsRef<str>) {
+    async fn resolve_lib_file(context: &mut ThunkContext, file_src: impl AsRef<str>) {
         let path_buf = PathBuf::from(file_src.as_ref());
         if !path_buf.exists() {
             if file_src.as_ref().starts_with("lib/sh") {
                 let file_name = file_src.as_ref().trim_start_matches("lib/sh/");
-                if let Some(file) = Shell::get(file_name) {
-                    context.as_mut().add_binary_attr("content", file.data.to_vec());
+                if let Some(file) = Resources("lib/sh").read_binary::<Shell>(context, &file_name.to_string()).await {
+                    context.as_mut().add_binary_attr("content", file.to_vec());
                 }
             }
         }

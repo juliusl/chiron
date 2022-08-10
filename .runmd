@@ -1,0 +1,63 @@
+# ACR mirror
+``` mirror call
+define a_install  install     .symbol acr_login
+define b_login    process     .symbol acr_login
+define c_redirect redirect    .symbol acr_login_token
+define d_teleport mirror_host .symbol teleport
+```
+
+``` acr_login install
+add work_dir                      .text   .run/acr_login
+add file_src                      .text   lib/sh/acr-login.sh
+add default_open                  .enable
+add enable_connection             .enable
+add description                   .text    Installs the acr-login script
+add node_title                    .text    Install acr-login script
+```
+
+``` acr_login process
+add  command .text sh acr-login.sh
+
+add current_dir                 .text .run/acr_login
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Login to ACR
+```
+
+``` acr_login_token redirect
+add redirect_stdout             .text acr_token
+add redirect_stderr             .text acr.log
+add work_dir                    .text .run/acr_login
+add default_open                .enable
+add enable_connection           .enable
+add node_title                  .text Redirect acr_login output
+```
+
+``` teleport mirror_host
+add address                     .text localhost:5000
+add file_src                    .text .run/acr_login/acr_token
+- add enable_teleport             .enable
+add artifact_type               .text dadi.image.v1
+add enable_resolver             .enable
+add enable_char_device          .enable
+add default_open                .enable
+add enable_connection           .enable
+add auto                        .disable
+add node_title                  .text Host mirror for teleport
+```
+
+# Portal host
+``` host call
+define a_host           install  .symbol portal
+define b_host           app_host .symbol portal
+```
+
+``` portal install 
+add work_dir                      .text   design/portal
+add file_src                      .text   lib/elm/portal/portal.js
+```
+
+``` portal app_host
+add node_title                   .text  Host lab app_host
+add address                      .text  localhost:3000
+```
