@@ -38,7 +38,7 @@ use acr::Acr;
 
 #[derive(Debug, Parser)]
 #[clap(name = "chiron")]
-#[clap(about = "developer tool, for building interactive scripts and labs", long_about = None)]
+#[clap(about = "Developer tool, for building interactive scripts and labs.", long_about = None)]
 struct Cli {
     /// If no subcommand is passed, starts the tool gui if possible
     #[clap(subcommand)]
