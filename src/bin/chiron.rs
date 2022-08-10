@@ -1,40 +1,12 @@
+use chiron::{create_runtime, Host};
 use clap::{Args, Parser, Subcommand};
 use imgui::Window;
-use lifec::{
-    editor::{Call, Fix},
-    plugins::{
-        Config, Expect, Missing, OpenDir, OpenFile, Println, Process, Project, Redirect, Remote,
-        Timer, WriteFile,
-    },
-    *,
-};
-use lifec_hyper::HyperContext;
-use lifec_poem::{AppHost, StaticFiles};
-use lifec_registry::{Authenticate, Login, MirrorHost, Resolve};
+use lifec::{plugins::Project, Runtime, open, combine, Extension, World, DispatcherBuilder, App, System};
 use lifec_shell::Shell;
 use shinsu::NodeEditor;
 use tracing::{event, Level};
 use std::{path::PathBuf};
 use tracing_subscriber::EnvFilter;
-
-mod cloud_init;
-use cloud_init::Installer;
-use cloud_init::MakeMime;
-use cloud_init::ReadMime;
-
-mod install;
-use install::Install;
-
-mod host;
-use host::Host;
-
-mod lab;
-use lab::Lab;
-
-mod design;
-
-mod acr;
-use acr::Acr;
 
 #[derive(Debug, Parser)]
 #[clap(name = "chiron")]
@@ -122,71 +94,6 @@ fn main() {
 
     return;
 }
-
-fn create_runtime(project: Project) -> Runtime {
-    let mut runtime = Runtime::new(project);
-
-    // --- lifec plugins ---
-    // -- Filesystem plugins
-    runtime.install::<Call, WriteFile>();
-    runtime.install::<Call, OpenFile>();
-    runtime.install::<Call, OpenDir>();
-    // -- Utility plugins
-    runtime.install::<Call, Println>();
-    runtime.install::<Call, Timer>();
-    // -- System plugins
-    runtime.install::<Call, Process>();
-    runtime.install::<Call, Remote>();
-    runtime.install::<Call, Expect>();
-    runtime.install::<Call, Runtime>();
-    runtime.install::<Call, Redirect>();
-    runtime.install::<Fix, Missing>();
-
-    // --- lifec_poem plugins ---
-    // -- Hosting code
-    runtime.install::<Call, StaticFiles>();
-    runtime.install::<Call, AppHost<Lab>>();
-
-    // --- lifec_hyper plugins ---
-    // -- Client code
-    // this adds a "request" plugin to make https requests
-    runtime.install::<Call, HyperContext>();
-
-    // -- lifec_registry plugins --
-    runtime.install::<Call, Login>();
-    runtime.install::<Call, Authenticate>();
-    runtime.install::<Call, Resolve>();
-    runtime.install::<Call, MirrorHost<Acr>>();
-
-    // -- Cloud-init plugins --
-    runtime.install::<Call, MakeMime>();
-    runtime.install::<Call, ReadMime>();
-    runtime.install::<Call, Installer>();
-
-    // -- Cloud-init configs
-    runtime.add_config(Config("cloud_init", |tc| {
-        cloud_init::env(tc);
-    }));
-
-    runtime.add_config(Config("cloud_init_exit", |tc| {
-        tc.as_mut().add_text_attr("src_type", "exit");
-        cloud_init::env(tc);
-    }));
-
-    runtime.add_config(Config("cloud_init_enter", |tc| {
-        tc.as_mut().add_text_attr("src_type", "enter");
-        cloud_init::env(tc);
-    }));
-
-    // --- chiron plugins ---
-    runtime.install::<Call, Install>();
-    runtime.install::<Call, Lab>();
-
-    // common default configs
-    runtime.add_config(Config("empty", |_| {}));
-    runtime
-}
-
 struct Main(Host, NodeEditor);
 
 impl Extension for Main {
