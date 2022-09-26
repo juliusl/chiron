@@ -1,50 +1,45 @@
 # ACR mirror
-``` mirror call
-define a_install  install     .symbol acr_login
-define b_login    process     .symbol acr_login
-define c_redirect redirect    .symbol acr_login_token
-define d_teleport mirror_host .symbol teleport
+
+## Control settings
+
+``` acr
+: work_dir .symbol .run/acr_login
+
++ .sequence install, login, start 
+: install       .event <Install scripts, environment, and config>
+: login         .event <Sign-in to ACR on machine>
+: start         .event <Start the mirror host>
 ```
 
-``` acr_login install
-add work_dir                      .text   .run/acr_login
-add file_src                      .text   lib/sh/acr-login.sh
-add default_open                  .enable
-add enable_connection             .enable
-add description                   .text    Installs the acr-login script
-add node_title                    .text    Install acr-login script
+## Install login scripts
+
+``` install acr
+: description   .symbol Installs the acr-login script
+: node_title    .symbol Install acr-login script
+
++ .runtime
+: .install acr-login.sh
 ```
 
-``` acr_login process
-add  command .text sh acr-login.sh
+## Authenticate with ACR to get a Token 
 
-add current_dir                 .text .run/acr_login
-add default_open                .enable
-add enable_connection           .enable
-add node_title                  .text Login to ACR
-```
+``` login acr 
+: node_title .symbol Login to ACR
 
-``` acr_login_token redirect
-add redirect_stdout             .text acr_token
-add redirect_stderr             .text acr.log
-add work_dir                    .text .run/acr_login
-add default_open                .enable
-add enable_connection           .enable
-add node_title                  .text Redirect acr_login output
-```
++ .runtime
+: .process sh acr-login.sh
+``` 
 
-``` teleport mirror_host
-add address                     .text localhost:5000
-add file_src                    .text .run/acr_login/acr_token
-- add enable_teleport             .enable
-add artifact_type               .text dadi.image.v1
-add enable_resolver             .enable
-add enable_char_device          .enable
-add default_open                .enable
-add enable_connection           .enable
-add auto                        .disable
-add node_title                  .text Host mirror for teleport
-```
+## Start the mirror host 
+
+``` start acr
+: file_src      .symbol .run/acr_login/acr_token
+: artifact_type .symbol dadi.image.v1
+
++ .runtime 
+: .mirror_host localhost:5000
+``` 
+
 
 # Portal host
 ``` host call
