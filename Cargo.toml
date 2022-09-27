@@ -11,12 +11,11 @@ serde_yaml = "0.8"
 walkdir = "2"
 phf = { version = "0.10", features = ["macros"] }
 
-lifec = { git = "https://github.com/juliusl/lifec.git", branch = "pr/v2_api" }
+lifec = { path = "../lifec" } # { git = "https://github.com/juliusl/lifec.git", branch = "pr/v2_api" }
 lifec_poem = { git = "https://github.com/juliusl/lifec_poem.git", branch = "pr/v2_api" }
 lifec_hyper = { git = "https://github.com/juliusl/lifec_hyper.git", branch = "pr/v2_api" }
 lifec_registry = { git = "https://github.com/juliusl/lifec_registry.git", branch = "pr/v2_api" }
 lifec_shell = { git = "https://github.com/juliusl/lifec_shell.git", branch = "pr/v2_api" }
-knot = { git = "https://github.com/juliusl/knot.git", branch="main" }
 shinsu = { git = "https://github.com/juliusl/shinsu.git", branch="pr/fork" }
 
 # TODO: This can probably turn into a standalone repo

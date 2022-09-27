@@ -18,20 +18,10 @@ mod design;
 mod acr;
 pub use acr::Acr;
 use lifec::Runtime;
-use lifec::editor::Call;
-use lifec::editor::Fix;
 use lifec::plugins::Config;
-use lifec::plugins::Expect;
-use lifec::plugins::Missing;
-use lifec::plugins::OpenDir;
-use lifec::plugins::OpenFile;
 use lifec::plugins::Println;
 use lifec::plugins::Process;
-use lifec::plugins::Project;
-use lifec::plugins::Redirect;
-use lifec::plugins::Remote;
 use lifec::plugins::Timer;
-use lifec::plugins::WriteFile;
 use lifec_hyper::HyperContext;
 use lifec_poem::AppHost;
 use lifec_poem::StaticFiles;
@@ -45,41 +35,31 @@ pub fn create_runtime(project: Project) -> Runtime {
     let mut runtime = Runtime::new(project);
 
     // --- lifec plugins ---
-    // -- Filesystem plugins
-    runtime.install::<Call, WriteFile>();
-    runtime.install::<Call, OpenFile>();
-    runtime.install::<Call, OpenDir>();
-    // -- Utility plugins
-    runtime.install::<Call, Println>();
-    runtime.install::<Call, Timer>();
+    runtime.install::<Println>();
+    runtime.install::<Timer>();
     // -- System plugins
-    runtime.install::<Call, Process>();
-    runtime.install::<Call, Remote>();
-    runtime.install::<Call, Expect>();
-    runtime.install::<Call, Runtime>();
-    runtime.install::<Call, Redirect>();
-    runtime.install::<Fix, Missing>();
+    runtime.install::<Process>();
 
     // --- lifec_poem plugins ---
     // -- Hosting code
-    runtime.install::<Call, StaticFiles>();
-    runtime.install::<Call, AppHost<Lab>>();
+    runtime.install::<StaticFiles>();
+    runtime.install::<AppHost<Lab>>();
 
     // --- lifec_hyper plugins ---
     // -- Client code
     // this adds a "request" plugin to make https requests
-    runtime.install::<Call, HyperContext>();
+    runtime.install::<HyperContext>();
 
     // -- lifec_registry plugins --
-    runtime.install::<Call, Login>();
-    runtime.install::<Call, Authenticate>();
-    runtime.install::<Call, Resolve>();
-    runtime.install::<Call, MirrorHost<Acr>>();
+    runtime.install::<Login>();
+    runtime.install::<Authenticate>();
+    runtime.install::<Resolve>();
+    runtime.install::<MirrorHost<Acr>>();
 
     // -- Cloud-init plugins --
-    runtime.install::<Call, MakeMime>();
-    runtime.install::<Call, ReadMime>();
-    runtime.install::<Call, Installer>();
+    runtime.install::<MakeMime>();
+    runtime.install::<ReadMime>();
+    runtime.install::<Installer>();
 
     // -- Cloud-init configs
     runtime.add_config(Config("cloud_init", |tc| {
@@ -97,8 +77,8 @@ pub fn create_runtime(project: Project) -> Runtime {
     }));
 
     // --- chiron plugins ---
-    runtime.install::<Call, Install>();
-    runtime.install::<Call, Lab>();
+    runtime.install::<Install>();
+    runtime.install::<Lab>();
 
     // common default configs
     runtime.add_config(Config("empty", |_| {}));
